@@ -1,0 +1,22 @@
+{
+  "name": "enclave-8004",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:lit": "tsx scripts/test-lit.ts",
+    "test:storage": "tsx scripts/test-storage.ts"
+  },
+  "dependencies": {
+    "@lit-protocol/constants": "^7.4.0",
+    "@lit-protocol/lit-node-client": "^7.4.0",
+    "@lit-protocol/lit-node-client-nodejs": "^7.0.0",
+    "@lit-protocol/types": "^7.4.0",
+    "@web3-storage/w3up-client": "^17.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}

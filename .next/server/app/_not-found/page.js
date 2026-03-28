@@ -1,0 +1,12 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_not-found/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0z.y~yl._.js")
+R.c("server/chunks/ssr/08yp_next_dist_esm_build_templates_app-page_08t0xgk.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0l86~wh._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0yr_cin._.js")
+R.c("server/chunks/ssr/Documents_Github_PL-Genesis_src_app_layout_tsx_0yc4enk._.js")
+R.c("server/chunks/ssr/08yp_next_dist_client_components_0xyak1h._.js")
+R.c("server/chunks/ssr/08yp_next_dist_client_components_builtin_forbidden_12h~9in.js")
+R.c("server/chunks/ssr/08yp_next_dist_client_components_builtin_unauthorized_00jd.b0.js")
+R.c("server/chunks/ssr/0m4n_Github_PL-Genesis__next-internal_server_app__not-found_page_actions_0y8qy6m.js")
+R.m(47723)
+module.exports=R.m(47723).exports

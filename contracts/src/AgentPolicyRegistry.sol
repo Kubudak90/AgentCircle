@@ -2,8 +2,8 @@
 pragma solidity ^0.8.24;
 
 /// @title AgentPolicyRegistry
-/// @notice ERC-8004 Identity + Reputation combined with ERC-7857 Agent NFT concept.
-///         Lean hackathon MVP for Enclave_8004 / AgentCircle.
+/// @notice ERC-8004 Identity + Reputation with ECDSA-verified TEE receipts.
+///         Anyone can submit receipts — signature proves TEE authenticity, not msg.sender.
 contract AgentPolicyRegistry {
     // ──────────────────── Types ────────────────────
 
@@ -29,14 +29,14 @@ contract AgentPolicyRegistry {
 
     event AgentRegistered(uint256 indexed agentId, address indexed owner, string name);
     event PolicyUpdated(uint256 indexed agentId, string newCID);
-    event ReceiptSubmitted(uint256 indexed agentId, string receiptCID, bool policyAdherenceVerified);
+    event ReceiptSubmitted(uint256 indexed agentId, string receiptCID, bool policyAdherenceVerified, address submitter);
     event AdopterJoined(uint256 indexed agentId, address indexed adopter);
     event AdopterLeft(uint256 indexed agentId, address indexed adopter);
 
     // ──────────────────── Errors ────────────────────
 
     error NotOwner();
-    error NotTEE();
+    error InvalidSignature();
     error AgentNotFound();
     error AlreadyAdopter();
     error NotAdopter();
@@ -45,11 +45,6 @@ contract AgentPolicyRegistry {
 
     modifier onlyOwner(uint256 agentId) {
         if (agents[agentId].owner != msg.sender) revert NotOwner();
-        _;
-    }
-
-    modifier onlyTEE(uint256 agentId) {
-        if (agents[agentId].teePublicKey != msg.sender) revert NotTEE();
         _;
     }
 
@@ -73,7 +68,7 @@ contract AgentPolicyRegistry {
             teePublicKey: teePublicKey,
             name: name,
             policyBundleCID: policyBundleCID,
-            reputationScore: 50, // start neutral
+            reputationScore: 50,
             totalExecutions: 0,
             activeAdopters: 0,
             latestReceiptCID: ""
@@ -92,26 +87,38 @@ contract AgentPolicyRegistry {
         emit PolicyUpdated(agentId, newCID);
     }
 
-    // ──────────────────── Receipt Submission (TEE only → ERC-8004 Reputation) ────────────────────
+    // ──────────────────── Receipt Submission (ECDSA verified → ERC-8004 Reputation) ────────────────────
 
+    /// @notice Submit a TEE-signed execution receipt. Anyone can call this — the TEE signature is the proof.
+    /// @param agentId The agent whose reputation is updated.
+    /// @param receiptCID The Filecoin CID of the full execution log.
+    /// @param policyAdherenceVerified Whether the trade stayed within risk guardrails.
+    /// @param teeSignature ECDSA signature by the Lit PKP over keccak256(agentId, policyAdherenceVerified, receiptCID).
     function submitExecutionReceipt(
         uint256 agentId,
         string calldata receiptCID,
-        bool policyAdherenceVerified
-    ) external exists(agentId) onlyTEE(agentId) {
-        Agent storage agent = agents[agentId];
+        bool policyAdherenceVerified,
+        bytes calldata teeSignature
+    ) external exists(agentId) {
+        // Reconstruct the message the TEE signed
+        bytes32 messageHash = keccak256(abi.encodePacked(agentId, policyAdherenceVerified, receiptCID));
+        bytes32 ethSignedHash = _toEthSignedMessageHash(messageHash);
 
+        // Recover signer from ECDSA signature
+        address recovered = _recover(ethSignedHash, teeSignature);
+        if (recovered != agents[agentId].teePublicKey) revert InvalidSignature();
+
+        // Update state
+        Agent storage agent = agents[agentId];
         agent.totalExecutions++;
         agent.latestReceiptCID = receiptCID;
 
         if (policyAdherenceVerified) {
-            // Reputation increases: move toward 100, diminishing returns
             uint256 gap = 100 - agent.reputationScore;
             uint256 boost = gap / 10;
             if (boost == 0 && gap > 0) boost = 1;
             agent.reputationScore += boost;
         } else {
-            // Reputation drops heavily: lose 20 points (floor at 0)
             if (agent.reputationScore > 20) {
                 agent.reputationScore -= 20;
             } else {
@@ -119,7 +126,29 @@ contract AgentPolicyRegistry {
             }
         }
 
-        emit ReceiptSubmitted(agentId, receiptCID, policyAdherenceVerified);
+        emit ReceiptSubmitted(agentId, receiptCID, policyAdherenceVerified, msg.sender);
+    }
+
+    // ──────────────────── ECDSA Helpers (inline, no OZ dependency) ────────────────────
+
+    function _toEthSignedMessageHash(bytes32 hash) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+    }
+
+    function _recover(bytes32 hash, bytes calldata sig) internal pure returns (address) {
+        if (sig.length != 65) revert InvalidSignature();
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := calldataload(sig.offset)
+            s := calldataload(add(sig.offset, 32))
+            v := byte(0, calldataload(add(sig.offset, 64)))
+        }
+        if (v < 27) v += 27;
+        address recovered = ecrecover(hash, v, r, s);
+        if (recovered == address(0)) revert InvalidSignature();
+        return recovered;
     }
 
     // ──────────────────── Adopter Tracking ────────────────────

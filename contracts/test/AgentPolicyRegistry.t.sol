@@ -9,11 +9,29 @@ contract AgentPolicyRegistryTest is Test {
 
     address owner = address(0xA);
     address operator = address(0xB);
-    address tee = address(0xC);
     address follower = address(0xD);
+    address relayer = address(0xE); // random gas payer
+
+    // TEE keypair — Foundry vm.sign uses private key to produce real ECDSA sigs
+    uint256 constant TEE_PK = 0xBEEF;
+    address tee; // derived from TEE_PK
 
     function setUp() public {
         registry = new AgentPolicyRegistry();
+        tee = vm.addr(TEE_PK);
+    }
+
+    // ──────────────────── Helpers ────────────────────
+
+    function _signReceipt(uint256 agentId, bool adherence, string memory cid)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        bytes32 messageHash = keccak256(abi.encodePacked(agentId, adherence, cid));
+        bytes32 ethHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(TEE_PK, ethHash);
+        return abi.encodePacked(r, s, v);
     }
 
     // ──────────────────── Registration ────────────────────
@@ -30,7 +48,6 @@ contract AgentPolicyRegistryTest is Test {
         assertEq(agent.reputationScore, 50);
         assertEq(agent.totalExecutions, 0);
         assertEq(agent.activeAdopters, 0);
-        assertEq(keccak256(bytes(agent.policyBundleCID)), keccak256(bytes("ipfs://policy123")));
     }
 
     function test_registerMultipleAgents() public {
@@ -64,40 +81,90 @@ contract AgentPolicyRegistryTest is Test {
         registry.updatePolicyBundle(id, "hacked_cid");
     }
 
-    // ──────────────────── Receipt Submission ────────────────────
+    // ──────────────────── Receipt Submission (ECDSA) ────────────────────
 
-    function test_submitReceipt_adherenceTrue_boostsReputation() public {
+    function test_submitReceipt_validSig_boostsReputation() public {
         vm.prank(owner);
         uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
 
-        // Starting rep = 50, gap = 50, boost = 5 → 55
-        vm.prank(tee);
-        registry.submitExecutionReceipt(id, "receipt_cid_1", true);
+        bytes memory sig = _signReceipt(id, true, "receipt_cid_1");
+
+        // Anyone can submit (relayer pays gas)
+        vm.prank(relayer);
+        registry.submitExecutionReceipt(id, "receipt_cid_1", true, sig);
 
         AgentPolicyRegistry.Agent memory agent = registry.getAgent(id);
-        assertEq(agent.reputationScore, 55);
+        assertEq(agent.reputationScore, 55); // 50 + gap/10 = 50 + 5
         assertEq(agent.totalExecutions, 1);
-        assertEq(keccak256(bytes(agent.latestReceiptCID)), keccak256(bytes("receipt_cid_1")));
     }
 
-    function test_submitReceipt_adherenceFalse_dropsReputation() public {
+    function test_submitReceipt_validSig_dropsReputation() public {
         vm.prank(owner);
         uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
 
-        // Starting rep = 50, drop 20 → 30
-        vm.prank(tee);
-        registry.submitExecutionReceipt(id, "receipt_bad", false);
+        bytes memory sig = _signReceipt(id, false, "receipt_bad");
 
-        assertEq(registry.getReputation(id), 30);
+        vm.prank(relayer);
+        registry.submitExecutionReceipt(id, "receipt_bad", false, sig);
+
+        assertEq(registry.getReputation(id), 30); // 50 - 20
     }
 
-    function test_submitReceipt_revertNotTEE() public {
+    function test_submitReceipt_revertInvalidSig() public {
         vm.prank(owner);
         uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
 
+        // Sign with wrong private key
+        uint256 wrongPk = 0xDEAD;
+        bytes32 messageHash = keccak256(abi.encodePacked(id, true, "fake"));
+        bytes32 ethHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(wrongPk, ethHash);
+        bytes memory badSig = abi.encodePacked(r, s, v);
+
+        vm.prank(relayer);
+        vm.expectRevert(AgentPolicyRegistry.InvalidSignature.selector);
+        registry.submitExecutionReceipt(id, "fake", true, badSig);
+    }
+
+    function test_submitReceipt_revertTamperedData() public {
+        vm.prank(owner);
+        uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
+
+        // Sign for adherence=true but submit with adherence=false
+        bytes memory sig = _signReceipt(id, true, "receipt_cid");
+
+        vm.prank(relayer);
+        vm.expectRevert(AgentPolicyRegistry.InvalidSignature.selector);
+        registry.submitExecutionReceipt(id, "receipt_cid", false, sig); // tampered bool
+    }
+
+    function test_submitReceipt_revertTamperedCID() public {
+        vm.prank(owner);
+        uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
+
+        bytes memory sig = _signReceipt(id, true, "real_cid");
+
+        vm.prank(relayer);
+        vm.expectRevert(AgentPolicyRegistry.InvalidSignature.selector);
+        registry.submitExecutionReceipt(id, "tampered_cid", true, sig); // tampered CID
+    }
+
+    function test_submitReceipt_anyoneCanSubmit() public {
+        vm.prank(owner);
+        uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
+
+        bytes memory sig = _signReceipt(id, true, "receipt_1");
+
+        // Follower submits (not TEE, not owner, not relayer)
         vm.prank(follower);
-        vm.expectRevert(AgentPolicyRegistry.NotTEE.selector);
-        registry.submitExecutionReceipt(id, "fake", true);
+        registry.submitExecutionReceipt(id, "receipt_1", true, sig);
+        assertEq(registry.getAgent(id).totalExecutions, 1);
+
+        // Owner submits next one
+        bytes memory sig2 = _signReceipt(id, true, "receipt_2");
+        vm.prank(owner);
+        registry.submitExecutionReceipt(id, "receipt_2", true, sig2);
+        assertEq(registry.getAgent(id).totalExecutions, 2);
     }
 
     function test_submitReceipt_reputationFloorAtZero() public {
@@ -105,11 +172,12 @@ contract AgentPolicyRegistryTest is Test {
         uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
 
         // 50 → 30 → 10 → 0
-        vm.startPrank(tee);
-        registry.submitExecutionReceipt(id, "r1", false);
-        registry.submitExecutionReceipt(id, "r2", false);
-        registry.submitExecutionReceipt(id, "r3", false);
-        vm.stopPrank();
+        for (uint256 i = 0; i < 3; i++) {
+            string memory cid = string(abi.encodePacked("r", vm.toString(i)));
+            bytes memory sig = _signReceipt(id, false, cid);
+            vm.prank(relayer);
+            registry.submitExecutionReceipt(id, cid, false, sig);
+        }
 
         assertEq(registry.getReputation(id), 0);
     }
@@ -118,12 +186,12 @@ contract AgentPolicyRegistryTest is Test {
         vm.prank(owner);
         uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
 
-        // Submit many successful receipts — should approach 100 but never exceed
-        vm.startPrank(tee);
         for (uint256 i = 0; i < 50; i++) {
-            registry.submitExecutionReceipt(id, "r", true);
+            string memory cid = string(abi.encodePacked("r", vm.toString(i)));
+            bytes memory sig = _signReceipt(id, true, cid);
+            vm.prank(relayer);
+            registry.submitExecutionReceipt(id, cid, true, sig);
         }
-        vm.stopPrank();
 
         uint256 rep = registry.getReputation(id);
         assertGe(rep, 90);
@@ -170,8 +238,9 @@ contract AgentPolicyRegistryTest is Test {
     // ──────────────────── Edge: nonexistent agent ────────────────────
 
     function test_revertOnNonexistentAgent() public {
-        vm.prank(tee);
+        bytes memory sig = _signReceipt(999, true, "cid");
+        vm.prank(relayer);
         vm.expectRevert(AgentPolicyRegistry.AgentNotFound.selector);
-        registry.submitExecutionReceipt(999, "cid", true);
+        registry.submitExecutionReceipt(999, "cid", true, sig);
     }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useWriteContract, useSwitchChain } from "wagmi";
 import {
   Dialog,
   DialogContent,
@@ -38,8 +38,9 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
   const [txHash, setTxHash] = useState<string | null>(null);
   const termRef = useRef<HTMLDivElement>(null);
 
-  const { isConnected } = useAccount();
+  const { isConnected, chainId } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const { switchChainAsync } = useSwitchChain();
 
   const log = useCallback((text: string, color: LogLine["color"] = "green") => {
     setLogs((prev) => [...prev, { text, color }]);
@@ -157,6 +158,14 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
       }
 
       try {
+        // Auto-switch to Base Sepolia if needed
+        if (chainId !== REGISTRY_CHAIN.id) {
+          log(`> Wrong chain (${chainId}). Switching to ${REGISTRY_CHAIN.name}...`, "yellow");
+          await switchChainAsync({ chainId: REGISTRY_CHAIN.id });
+          log(`> Switched to ${REGISTRY_CHAIN.name} (${REGISTRY_CHAIN.id})`, "green");
+          await delay(300);
+        }
+
         log("> Requesting wallet signature...", "cyan");
 
         const hash = await writeContractAsync({

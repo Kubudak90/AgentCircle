@@ -198,6 +198,23 @@ contract AgentPolicyRegistryTest is Test {
         assertLe(rep, 100);
     }
 
+    // ──────────────────── Replay Protection ────────────────────
+
+    function test_submitReceipt_revertReplay() public {
+        vm.prank(owner);
+        uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
+
+        bytes memory sig = _signReceipt(id, true, "receipt_1");
+
+        vm.prank(relayer);
+        registry.submitExecutionReceipt(id, "receipt_1", true, sig);
+
+        // Same signature again → revert
+        vm.prank(relayer);
+        vm.expectRevert(AgentPolicyRegistry.ReceiptAlreadyUsed.selector);
+        registry.submitExecutionReceipt(id, "receipt_1", true, sig);
+    }
+
     // ──────────────────── Adopter Tracking ────────────────────
 
     function test_joinAndLeaveCircle() public {

@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "agentId": "1",
+  "agentName": "Garry's Whale Tracker",
+  "timestamp": "2026-03-29T12:00:00Z",
+  "followerWallet": "0xFollower1234567890abcdef1234567890abcdef",
+  "decisions": [
+    {
+      "step": 1,
+      "type": "POLICY_INHERITANCE",
+      "description": "Inherited PolicyBundle from KOL agent ID 1",
+      "policyBundleCID": "ipfs://bafybeigwhale001",
+      "overrides": {
+        "dailyLossLimitPercent": 5.0
+      }
+    },
+    {
+      "step": 2,
+      "type": "TEE_EXECUTION",
+      "description": "Executed hidden strategy logic inside Lit Protocol TEE enclave",
+      "executionSuccess": true,
+      "metrics": {
+        "latency_ms": 320,
+        "slippage_bps": 45
+      }
+    },
+    {
+      "step": 3,
+      "type": "RISK_EVALUATION",
+      "description": "TEE evaluated trade against inherited Risk Guardrails",
+      "policyAdherenceVerified": false,
+      "violations": [
+        "DAILY_LOSS_EXCEEDED: loss 6.0% > limit 5%"
+      ]
+    },
+    {
+      "step": 4,
+      "type": "RECEIPT_SIGNING",
+      "description": "TEE signed AgentLogReceipt with ECDSA (Lit PKP)",
+      "signaturePayload": "keccak256(abi.encodePacked(agentId, policyAdherenceVerified, receiptCID))"
+    },
+    {
+      "step": 5,
+      "type": "ONCHAIN_SUBMISSION",
+      "description": "Receipt submitted to AgentPolicyRegistry on Base Sepolia",
+      "contractFunction": "submitExecutionReceipt(uint256,string,bool,bytes)",
+      "verificationMethod": "ecrecover"
+    },
+    {
+      "step": 6,
+      "type": "STORAGE_UPLOAD",
+      "description": "Full receipt JSON uploaded to Filecoin via Storacha (async)",
+      "storageProvider": "storacha"
+    }
+  ],
+  "toolCalls": [
+    { "tool": "lit_tee_execute", "latency_ms": 320, "success": true },
+    { "tool": "storacha_upload", "cid": "ipfs://bafybeig...", "success": true },
+    { "tool": "base_sepolia_submit", "txHash": "0x...", "success": true }
+  ],
+  "result": {
+    "policyAdherenceVerified": false,
+    "teeSignature": "0x...",
+    "receiptCID": "ipfs://bafybeig...",
+    "reputationImpact": "-20 (violation penalty)"
+  }
+}

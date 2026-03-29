@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import InheritDialog from "@/components/InheritDialog";
 import ConnectButton from "@/components/ConnectButton";
+import Link from "next/link";
 
 function ReputationBar({ score }: { score: number }) {
   const color =
@@ -28,7 +29,9 @@ export default function Home() {
     <main className="min-h-screen px-6 py-12 max-w-5xl mx-auto">
       <header className="mb-12">
         <div className="flex items-center justify-between mb-6">
-          <div />
+          <Link href="/register">
+            <Button variant="outline" size="sm">Register Agent</Button>
+          </Link>
           <ConnectButton />
         </div>
         <div className="text-center">

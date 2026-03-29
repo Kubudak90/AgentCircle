@@ -1,0 +1,42 @@
+{
+  "name": "AgentCircle",
+  "description": "Private Policy Inheritance Protocol for Crypto Agents. Enables KOLs to publish structured operational policies (Source Graph, Candidate Filters, Risk Guardrails) that follower agents inherit via TEE-enforced, ECDSA-verified execution.",
+  "version": "1.0.0",
+  "operator": "DEPLOYER_ADDRESS",
+  "tools": [
+    {
+      "name": "inherit_agent_policy",
+      "description": "Inherit a KOL's trading policy, execute inside TEE, verify risk guardrails, return ECDSA-signed receipt"
+    },
+    {
+      "name": "list_circles",
+      "description": "List all available policy circles with reputation scores"
+    },
+    {
+      "name": "submit_receipt",
+      "description": "Submit TEE-signed execution receipt to ERC-8004 on-chain registry"
+    }
+  ],
+  "constraints": {
+    "teeRequired": true,
+    "killSwitchEnabled": true,
+    "followerCanOnlyTightenGuardrails": true
+  },
+  "supportedTrust": ["tee-attestation", "reputation"],
+  "registrations": [
+    {
+      "agentId": 1,
+      "agentRegistry": "eip155:84532:DEPLOYED_ADDRESS"
+    }
+  ],
+  "protocols": {
+    "mcp": {
+      "server": "scripts/mcp-server.ts",
+      "transport": "stdio"
+    },
+    "erc8004": {
+      "identityRegistry": "DEPLOYED_ADDRESS",
+      "chain": "base-sepolia"
+    }
+  }
+}

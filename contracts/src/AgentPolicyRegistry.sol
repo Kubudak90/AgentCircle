@@ -24,6 +24,7 @@ contract AgentPolicyRegistry {
     uint256 public nextAgentId = 1;
     mapping(uint256 => Agent) public agents;
     mapping(uint256 => mapping(address => bool)) public isAdopter;
+    mapping(bytes32 => bool) public usedReceipts;
 
     // ──────────────────── Events (ERC-8004 aligned) ────────────────────
 
@@ -40,6 +41,7 @@ contract AgentPolicyRegistry {
     error AgentNotFound();
     error AlreadyAdopter();
     error NotAdopter();
+    error ReceiptAlreadyUsed();
 
     // ──────────────────── Modifiers ────────────────────
 
@@ -100,6 +102,11 @@ contract AgentPolicyRegistry {
         bool policyAdherenceVerified,
         bytes calldata teeSignature
     ) external exists(agentId) {
+        // Replay protection: each signature can only be used once
+        bytes32 sigHash = keccak256(teeSignature);
+        if (usedReceipts[sigHash]) revert ReceiptAlreadyUsed();
+        usedReceipts[sigHash] = true;
+
         // Reconstruct the message the TEE signed
         bytes32 messageHash = keccak256(abi.encodePacked(agentId, policyAdherenceVerified, receiptCID));
         bytes32 ethSignedHash = _toEthSignedMessageHash(messageHash);

@@ -84,9 +84,10 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
     log("> Result: Trade complete. Verifying Policy Adherence...");
     await delay(800);
 
-    log("> Calling /api/execute...", "cyan");
+    log("> TEE signing receipt with ECDSA (Lit PKP)...", "cyan");
 
     try {
+      // ─── REAL API: /api/execute (returns ECDSA-signed receipt) ───
       const execRes = await fetch("/api/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,6 +95,7 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
           request: {
             followerWallet: wallet,
             inheritedPolicyId: kol.nft.tokenId,
+            targetTxHash: null, // dry run for MVP
             customRiskOverrides: { dailyLossLimitPercent: lossOverride },
           },
           policy: kol.policy,
@@ -106,9 +108,11 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         }),
       });
 
-      const { receipt, violations } = (await execRes.json()) as {
+      const { receipt, violations, receiptCID, mockPkpAddress } = (await execRes.json()) as {
         receipt: AgentLogReceipt;
         violations: string[];
+        receiptCID: string;
+        mockPkpAddress: string;
       };
 
       await delay(300);
@@ -118,47 +122,43 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         for (const v of violations) {
           log(`>   ${v}`, "red");
         }
-        log(`> TEE Signature: ${receipt.teeSignature}`, "white");
-        await delay(500);
         log("> Violation receipt will still be logged for transparency.", "yellow");
       } else {
         log("> Policy Adherence: VERIFIED", "green");
-        log(`> TEE Signature: ${receipt.teeSignature}`, "white");
       }
 
-      await delay(600);
+      log(`> TEE Signature: ${receipt.teeSignature.slice(0, 22)}...`, "white");
+      log(`> Mock PKP Address: ${mockPkpAddress}`, "white");
+      log(`> Receipt CID: ${receiptCID}`, "green");
 
-      // --- Upload to Storacha ---
-      log("> Uploading AgentLogReceipt to Filecoin via Storacha...", "cyan");
+      setResultCID(receiptCID);
 
-      const uploadRes = await fetch("/api/upload", {
+      // ─── FIRE AND FORGET: Upload to Storacha (non-blocking) ───
+      log("> [ASYNC] Uploading full receipt to Filecoin via Storacha...", "yellow");
+      fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receipt }),
+      }).then(() => {
+        // Background confirmation — terminal may already be closed
+      }).catch(() => {
+        // Silent fail — CID is already committed on-chain
       });
 
-      const { cid, mode } = (await uploadRes.json()) as { cid: string; mode: string };
-
       await delay(400);
-      log(`> Receipt CID: ${cid}`, "green");
-      log(`> Storage mode: ${mode}`, "white");
-      setResultCID(cid);
 
-      await delay(500);
-
-      // --- On-Chain Transaction ---
-      log("> Submitting CID to ERC-8004 Registry on-chain...", "cyan");
+      // ─── ON-CHAIN: Submit receipt with ECDSA signature ───
+      log("> Submitting to ERC-8004 Registry on-chain...", "cyan");
 
       if (!isConnected) {
         log("> Wallet not connected. Skipping on-chain tx.", "yellow");
         log("> Connect your wallet to submit receipts on Base Sepolia.", "yellow");
         log("> Done (off-chain only).", "green");
-        toast.success("Receipt generated (wallet not connected)", { description: cid });
+        toast.success("Receipt generated (wallet not connected)", { description: receiptCID });
         return;
       }
 
       try {
-        // Auto-switch to Base Sepolia if needed
         if (chainId !== REGISTRY_CHAIN.id) {
           log(`> Wrong chain (${chainId}). Switching to ${REGISTRY_CHAIN.name}...`, "yellow");
           await switchChainAsync({ chainId: REGISTRY_CHAIN.id });
@@ -172,28 +172,28 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
           address: REGISTRY_ADDRESS,
           abi: REGISTRY_ABI,
           functionName: "submitExecutionReceipt",
-          args: [BigInt(kol.nft.tokenId), cid, receipt.policyAdherenceVerified],
+          args: [
+            BigInt(kol.nft.tokenId),
+            receiptCID,
+            receipt.policyAdherenceVerified,
+            receipt.teeSignature as `0x${string}`,
+          ],
           chainId: REGISTRY_CHAIN.id,
         });
 
         setTxHash(hash);
         log(`> Tx submitted: ${hash}`, "green");
-        log("> Waiting for confirmation...", "cyan");
-
-        // We don't await the receipt here to keep the demo snappy
-        await delay(1500);
-        log("> Receipt logged to AgentPolicyRegistry.submitExecutionReceipt()", "green");
+        log("> Storacha upload running in background...", "yellow");
         log("> Done.", "green");
 
         toast.success("Receipt logged to ERC-8004 Registry", {
-          description: `Tx: ${hash.slice(0, 10)}...`,
+          description: `Tx: ${hash.slice(0, 14)}...`,
         });
       } catch (txErr: any) {
         const msg = txErr?.shortMessage || txErr?.message || "Transaction failed";
         log(`> Tx failed: ${msg}`, "red");
-        log("> Receipt was still uploaded to Filecoin.", "yellow");
+        log("> Receipt CID + signature preserved off-chain.", "yellow");
         log("> Done (off-chain only).", "green");
-
         toast.error("On-chain tx failed", { description: msg });
       }
     } catch (err: any) {

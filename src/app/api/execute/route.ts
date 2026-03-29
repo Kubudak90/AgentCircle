@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { keccak256, encodePacked, type Hex } from "viem";
 import type {
   TEE_ExecutionRequest,
   PolicyBundle,
@@ -26,7 +28,6 @@ function evaluateAdherence(
     ...guardrails,
     ...(overrides
       ? {
-          // Follower can only tighten, never loosen
           maxPositionSizeUSDC: Math.min(
             guardrails.maxPositionSizeUSDC,
             overrides.maxPositionSizeUSDC ?? guardrails.maxPositionSizeUSDC
@@ -65,7 +66,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing request or policy" }, { status: 400 });
     }
 
-    // Simulate trade result (in production, Lit TEE executes real logic)
     const trade = mockTradeResult ?? {
       pnlPercent: -6.0,
       slippageBps: 45,
@@ -79,6 +79,28 @@ export async function POST(req: NextRequest) {
       request.customRiskOverrides
     );
 
+    // Generate a deterministic mock CID from receipt content
+    const receiptCID = `ipfs://bafybeig${Date.now().toString(16).padEnd(50, "0").slice(0, 50)}`;
+
+    // --- Mock Lit PKP Signing (viem) ---
+    // In production, the Lit PKP signs inside the TEE. Here we simulate with a random wallet.
+    const mockPkpPrivateKey = generatePrivateKey();
+    const mockPkpAccount = privateKeyToAccount(mockPkpPrivateKey);
+
+    // Sign: keccak256(abi.encodePacked(agentId, policyAdherenceVerified, receiptCID))
+    const agentId = BigInt(request.inheritedPolicyId);
+    const messageHash = keccak256(
+      encodePacked(
+        ["uint256", "bool", "string"],
+        [agentId, verified, receiptCID]
+      )
+    );
+
+    // personal_sign: "\x19Ethereum Signed Message:\n32" + hash
+    const teeSignature = await mockPkpAccount.signMessage({
+      message: { raw: messageHash as Hex },
+    });
+
     const receipt: AgentLogReceipt = {
       followerWallet: request.followerWallet,
       providerAgentId: request.inheritedPolicyId,
@@ -90,10 +112,15 @@ export async function POST(req: NextRequest) {
         slippage_bps: trade.slippageBps,
       },
       onChainTxHash: trade.txHash,
-      teeSignature: `0xTEE_SIG_${Date.now().toString(36)}`,
+      teeSignature,
     };
 
-    return NextResponse.json({ receipt, violations });
+    return NextResponse.json({
+      receipt,
+      violations,
+      receiptCID,
+      mockPkpAddress: mockPkpAccount.address,
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

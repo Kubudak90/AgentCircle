@@ -14,6 +14,7 @@ export const REGISTRY_ABI = [
       { name: "agentId", type: "uint256", internalType: "uint256" },
       { name: "receiptCID", type: "string", internalType: "string" },
       { name: "policyAdherenceVerified", type: "bool", internalType: "bool" },
+      { name: "teeSignature", type: "bytes", internalType: "bytes" },
     ],
     outputs: [],
     stateMutability: "nonpayable",

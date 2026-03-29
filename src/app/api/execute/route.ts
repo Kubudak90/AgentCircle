@@ -87,12 +87,15 @@ export async function POST(req: NextRequest) {
     const mockPkpPrivateKey = generatePrivateKey();
     const mockPkpAccount = privateKeyToAccount(mockPkpPrivateKey);
 
-    // Sign: keccak256(abi.encodePacked(agentId, policyAdherenceVerified, receiptCID))
+    // Sign: keccak256(abi.encodePacked(chainId, contractAddress, agentId, policyAdherenceVerified, receiptCID))
+    // Must match the contract's chain-scoped hash to pass ecrecover
+    const CHAIN_ID = BigInt(process.env.CHAIN_ID || "84532"); // Base Sepolia
+    const CONTRACT_ADDRESS = (process.env.REGISTRY_ADDRESS || "0x1234567890123456789012345678901234567890") as `0x${string}`;
     const agentId = BigInt(request.inheritedPolicyId);
     const messageHash = keccak256(
       encodePacked(
-        ["uint256", "bool", "string"],
-        [agentId, verified, receiptCID]
+        ["uint256", "address", "uint256", "bool", "string"],
+        [CHAIN_ID, CONTRACT_ADDRESS, agentId, verified, receiptCID]
       )
     );
 

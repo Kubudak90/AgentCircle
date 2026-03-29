@@ -45,4 +45,23 @@ export const REGISTRY_ABI = [
     ],
     stateMutability: "view",
   },
+  {
+    type: "function",
+    name: "registerAgent",
+    inputs: [
+      { name: "name", type: "string", internalType: "string" },
+      { name: "operatorWallet", type: "address", internalType: "address" },
+      { name: "policyBundleCID", type: "string", internalType: "string" },
+      { name: "teePublicKey", type: "address", internalType: "address" },
+    ],
+    outputs: [{ name: "agentId", type: "uint256", internalType: "uint256" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "checkReceiptUsed",
+    inputs: [{ name: "teeSignature", type: "bytes", internalType: "bytes" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
 ] as const satisfies Abi;

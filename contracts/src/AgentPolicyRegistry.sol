@@ -107,8 +107,8 @@ contract AgentPolicyRegistry {
         if (usedReceipts[sigHash]) revert ReceiptAlreadyUsed();
         usedReceipts[sigHash] = true;
 
-        // Reconstruct the message the TEE signed
-        bytes32 messageHash = keccak256(abi.encodePacked(agentId, policyAdherenceVerified, receiptCID));
+        // Reconstruct the message the TEE signed (chain-scoped to prevent cross-chain replay)
+        bytes32 messageHash = keccak256(abi.encodePacked(block.chainid, address(this), agentId, policyAdherenceVerified, receiptCID));
         bytes32 ethSignedHash = _toEthSignedMessageHash(messageHash);
 
         // Recover signer from ECDSA signature
@@ -153,6 +153,8 @@ contract AgentPolicyRegistry {
             v := byte(0, calldataload(add(sig.offset, 64)))
         }
         if (v < 27) v += 27;
+        // Enforce low-s to prevent signature malleability
+        if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) revert InvalidSignature();
         address recovered = ecrecover(hash, v, r, s);
         if (recovered == address(0)) revert InvalidSignature();
         return recovered;
@@ -182,5 +184,9 @@ contract AgentPolicyRegistry {
 
     function getReputation(uint256 agentId) external view returns (uint256) {
         return agents[agentId].reputationScore;
+    }
+
+    function checkReceiptUsed(bytes calldata teeSignature) external view returns (bool) {
+        return usedReceipts[keccak256(teeSignature)];
     }
 }

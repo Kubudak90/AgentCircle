@@ -7,23 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import ConnectButton from "@/components/ConnectButton";
-import { REGISTRY_ADDRESS, REGISTRY_CHAIN } from "@/lib/contract";
+import { REGISTRY_ADDRESS, REGISTRY_ABI, REGISTRY_CHAIN } from "@/lib/contract";
 import Link from "next/link";
-
-const REGISTER_ABI = [
-  {
-    type: "function",
-    name: "registerAgent",
-    inputs: [
-      { name: "name", type: "string" },
-      { name: "operatorWallet", type: "address" },
-      { name: "policyBundleCID", type: "string" },
-      { name: "teePublicKey", type: "address" },
-    ],
-    outputs: [{ name: "agentId", type: "uint256" }],
-    stateMutability: "nonpayable",
-  },
-] as const;
 
 export default function RegisterPage() {
   const { address, isConnected, chainId } = useAccount();
@@ -53,7 +38,7 @@ export default function RegisterPage() {
 
       const hash = await writeContractAsync({
         address: REGISTRY_ADDRESS,
-        abi: REGISTER_ABI,
+        abi: REGISTRY_ABI,
         functionName: "registerAgent",
         args: [
           name,

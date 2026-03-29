@@ -25,10 +25,10 @@ contract AgentPolicyRegistryTest is Test {
 
     function _signReceipt(uint256 agentId, bool adherence, string memory cid)
         internal
-        pure
+        view
         returns (bytes memory)
     {
-        bytes32 messageHash = keccak256(abi.encodePacked(agentId, adherence, cid));
+        bytes32 messageHash = keccak256(abi.encodePacked(block.chainid, address(registry), agentId, adherence, cid));
         bytes32 ethHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(TEE_PK, ethHash);
         return abi.encodePacked(r, s, v);
@@ -116,7 +116,7 @@ contract AgentPolicyRegistryTest is Test {
 
         // Sign with wrong private key
         uint256 wrongPk = 0xDEAD;
-        bytes32 messageHash = keccak256(abi.encodePacked(id, true, "fake"));
+        bytes32 messageHash = keccak256(abi.encodePacked(block.chainid, address(registry), id, true, "fake"));
         bytes32 ethHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(wrongPk, ethHash);
         bytes memory badSig = abi.encodePacked(r, s, v);

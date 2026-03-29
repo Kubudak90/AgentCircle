@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_KOLS } from "@/lib/mock-data";
-
-const agents = new Map(MOCK_KOLS.map((k) => [k.nft.tokenId, k]));
+import { getAgent } from "@/lib/agent-store";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ agentId: string }> }
 ) {
   const { agentId } = await params;
-  const agent = agents.get(agentId);
+  const agent = getAgent(agentId);
 
   if (!agent) {
     return NextResponse.json({ error: "Agent not found" }, { status: 404 });

@@ -108,6 +108,8 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         }),
       });
 
+      if (!execRes.ok) throw new Error(`TEE API returned ${execRes.status}`);
+
       const { receipt, violations, receiptCID, mockPkpAddress } = (await execRes.json()) as {
         receipt: AgentLogReceipt;
         violations: string[];
@@ -139,10 +141,8 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receipt }),
-      }).then(() => {
-        // Background confirmation — terminal may already be closed
-      }).catch(() => {
-        // Silent fail — CID is already committed on-chain
+      }).catch((err) => {
+        console.error("Storacha upload failed:", err);
       });
 
       await delay(400);
@@ -150,11 +150,16 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
       // ─── ON-CHAIN: Submit receipt with ECDSA signature ───
       log("> Submitting to ERC-8004 Registry on-chain...", "cyan");
 
-      if (!isConnected) {
-        log("> Wallet not connected. Skipping on-chain tx.", "yellow");
-        log("> Connect your wallet to submit receipts on Base Sepolia.", "yellow");
+      if (!isConnected || !receipt.teeSignature?.startsWith("0x")) {
+        if (!isConnected) {
+          log("> Wallet not connected. Skipping on-chain tx.", "yellow");
+          log("> Connect your wallet to submit receipts on Base Sepolia.", "yellow");
+        }
+        if (!receipt.teeSignature?.startsWith("0x")) {
+          log("> Invalid TEE signature format. Skipping on-chain tx.", "red");
+        }
         log("> Done (off-chain only).", "green");
-        toast.success("Receipt generated (wallet not connected)", { description: receiptCID });
+        toast.success("Receipt generated (off-chain only)", { description: receiptCID });
         return;
       }
 

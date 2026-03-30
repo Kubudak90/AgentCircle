@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 import { keccak256, encodePacked, type Hex } from "viem";
 import type {
   TEE_ExecutionRequest,
@@ -82,15 +82,16 @@ export async function POST(req: NextRequest) {
     // Generate a deterministic mock CID from receipt content
     const receiptCID = `ipfs://bafybeig${Date.now().toString(16).padEnd(50, "0").slice(0, 50)}`;
 
-    // --- Mock Lit PKP Signing (viem) ---
-    // In production, the Lit PKP signs inside the TEE. Here we simulate with a random wallet.
-    const mockPkpPrivateKey = generatePrivateKey();
-    const mockPkpAccount = privateKeyToAccount(mockPkpPrivateKey);
+    // --- TEE PKP Signing (viem) ---
+    // In production, the Lit PKP signs inside the TEE. For demo, use persistent key from env.
+    const pkpPrivateKey = process.env.TEE_PRIVATE_KEY as `0x${string}`;
+    if (!pkpPrivateKey) throw new Error("TEE_PRIVATE_KEY not set in env");
+    const mockPkpAccount = privateKeyToAccount(pkpPrivateKey);
 
     // Sign: keccak256(abi.encodePacked(chainId, contractAddress, agentId, policyAdherenceVerified, receiptCID))
     // Must match the contract's chain-scoped hash to pass ecrecover
     const CHAIN_ID = BigInt(process.env.CHAIN_ID || "84532"); // Base Sepolia
-    const CONTRACT_ADDRESS = (process.env.REGISTRY_ADDRESS || "0x1234567890123456789012345678901234567890") as `0x${string}`;
+    const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_REGISTRY_ADDRESS || process.env.REGISTRY_ADDRESS || "0x1234567890123456789012345678901234567890") as `0x${string}`;
     const agentId = BigInt(request.inheritedPolicyId);
     const messageHash = keccak256(
       encodePacked(

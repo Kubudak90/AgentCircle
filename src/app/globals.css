@@ -45,6 +45,10 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    --color-cobalt: var(--cobalt);
+    --color-amber: var(--amber);
+    --color-receipt-green: var(--receipt-green);
+    --color-receipt-red: var(--receipt-red);
 }
 
 :root {
@@ -114,6 +118,10 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --cobalt: #4B8EFF;
+    --amber: #FFBA20;
+    --receipt-green: #22c55e;
+    --receipt-red: #ef4444;
 }
 
 @layer base {

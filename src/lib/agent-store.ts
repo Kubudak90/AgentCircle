@@ -44,6 +44,7 @@ export function registerAgent(data: {
       candidateFilters: { minTokenAgeHours: 0, minLiquidityUSD: 0, maxFDV: null, blacklistedSectors: [], requireContractSafetyScore: 0 },
       riskGuardrails: { maxPositionSizeUSDC: 10000, maxLeverage: 3, dailyLossLimitPercent: 5.0, killSwitchEnabled: true },
     },
+    recentReceipts: [],
   };
   agents.set(agentId, agent);
   return { agentId, agent };

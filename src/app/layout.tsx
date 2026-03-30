@@ -1,10 +1,11 @@
 import "./globals.css";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Geist_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Web3Provider from "@/components/providers/Web3Provider";
 import { Toaster } from "@/components/ui/sonner";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-headline" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata = {
@@ -14,7 +15,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("dark font-sans", geist.variable, geistMono.variable)}>
+    <html lang="en" className={cn("dark font-sans", inter.variable, spaceGrotesk.variable, geistMono.variable)}>
       <body className="bg-background text-foreground min-h-screen antialiased">
         <Web3Provider>
           {children}

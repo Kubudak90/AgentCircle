@@ -1,22 +1,103 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 export default function ParticleBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationId: number;
+    let particles: { x: number; y: number; vx: number; vy: number; size: number; opacity: number; color: string }[] = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    const createParticles = () => {
+      particles = [];
+      const count = Math.floor((canvas.width * canvas.height) / 25000); // ~60-80 on 1920x1080
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          size: Math.random() * 1.5 + 0.5,
+          opacity: Math.random() * 0.12 + 0.04,
+          color: Math.random() > 0.5 ? "#00FF9C" : Math.random() > 0.5 ? "#80d8a7" : "#00C176",
+        });
+      }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wrap around edges
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
+        ctx.fill();
+      }
+
+      // Draw faint connections between nearby particles
+      ctx.globalAlpha = 1;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = particles[i].color;
+            ctx.globalAlpha = 0.03 * (1 - dist / 120);
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animationId = requestAnimationFrame(draw);
+    };
+
+    resize();
+    createParticles();
+    draw();
+
+    window.addEventListener("resize", () => {
+      resize();
+      createParticles();
+    });
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
-      {/* Floating particles */}
-      <div className="animate-float-1 absolute top-[10%] left-[15%] w-1 h-1 rounded-full bg-receipt-green/30" />
-      <div className="animate-float-2 absolute top-[25%] left-[70%] w-0.5 h-0.5 rounded-full bg-cobalt/40" />
-      <div className="animate-float-3 absolute top-[45%] left-[30%] w-1.5 h-1.5 rounded-full bg-receipt-green/20" />
-      <div className="animate-float-1 absolute top-[60%] left-[80%] w-0.5 h-0.5 rounded-full bg-cobalt/30" />
-      <div className="animate-float-2 absolute top-[75%] left-[45%] w-1 h-1 rounded-full bg-receipt-green/25" />
-      <div className="animate-float-3 absolute top-[15%] left-[55%] w-0.5 h-0.5 rounded-full bg-amber/20" />
-      <div className="animate-float-1 absolute top-[85%] left-[20%] w-1 h-1 rounded-full bg-cobalt/20" />
-      <div className="animate-float-2 absolute top-[35%] left-[90%] w-1.5 h-1.5 rounded-full bg-receipt-green/15" />
-      <div className="animate-float-3 absolute top-[55%] left-[10%] w-0.5 h-0.5 rounded-full bg-cobalt/25" />
-      <div className="animate-float-1 absolute top-[90%] left-[65%] w-1 h-1 rounded-full bg-receipt-green/20" />
-      {/* Subtle gradient orbs */}
-      <div className="absolute top-[20%] left-[50%] w-[600px] h-[600px] rounded-full bg-receipt-green/[0.02] blur-[120px]" />
-      <div className="absolute top-[60%] left-[20%] w-[400px] h-[400px] rounded-full bg-cobalt/[0.02] blur-[100px]" />
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-0"
+      aria-hidden="true"
+    />
   );
 }

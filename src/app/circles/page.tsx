@@ -10,180 +10,174 @@ export default function CirclesPage() {
   const [selected, setSelected] = useState<KOLAgent | null>(null);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#e5e2e1]">
+    <div className="min-h-screen bg-[#0c1605] text-[#d9e7c8] selection:bg-[#97d5a3] selection:text-[#003919]">
       {/* Top Nav */}
-      <header className="fixed top-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/5 shadow-[0_4px_12px_rgba(0,0,0,0.5)] flex items-center justify-between px-6 h-14">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 text-[#c1c6d7] hover:text-[#adc6ff] transition-all text-sm font-medium">
-            <span className="text-lg">&larr;</span>
+      <nav className="fixed top-0 w-full z-50 bg-[#18230f]/80 backdrop-blur-xl shadow-[0_0_15px_rgba(37,95,56,0.1)]">
+        <div className="flex justify-between items-center px-6 lg:px-8 py-3 max-w-screen-2xl mx-auto">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="text-xl font-bold text-[#97d5a3] tracking-tight uppercase">AgentCircle</Link>
+            <div className="hidden md:flex gap-6 text-xs font-medium uppercase tracking-widest">
+              <Link href="/" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">Discover</Link>
+              <span className="text-[#97d5a3] border-b border-[#255f38] pb-0.5">Policy Circles</span>
+              <span className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all cursor-pointer">Live Proofs</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="hidden lg:block bg-[#2d3822] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#97d5a3] border border-[#414941]/30">Lit TEE Verified</span>
+            <ConnectButton />
+          </div>
+        </div>
+        <div className="bg-gradient-to-b from-[#2d3822] to-transparent h-px w-full" />
+      </nav>
+
+      <main className="pt-24 pb-20 px-6 max-w-6xl mx-auto">
+        {/* Back */}
+        <div className="mb-10">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#97d5a3]/70 hover:text-[#97d5a3] transition-colors group">
+            <span className="transition-transform group-hover:-translate-x-1">&larr;</span>
             Back to Discover
           </Link>
-          <div className="h-5 w-px bg-white/10" />
-          <span className="text-lg font-bold tracking-tight text-[#adc6ff]">AgentCircle</span>
         </div>
-        <div className="flex items-center gap-4">
-          <ConnectButton />
-        </div>
-      </header>
 
-      <main className="pt-24 pb-32 px-6 max-w-7xl mx-auto">
-        {/* Featured Group Header */}
-        <section className="mb-16 relative overflow-hidden rounded-2xl p-10 bg-[#201f1f]/40 backdrop-blur-xl border border-[#8b90a0]/15">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 rounded-full bg-[#ffba20]/10 text-[#ffba20] text-[10px] font-bold uppercase tracking-widest border border-[#ffba20]/20">Verified Protocol</span>
-                <span className="text-[#adc6ff] text-xs font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#adc6ff]" />
-                  Lit TEE Secured
-                </span>
+        {/* Header */}
+        <header className="mb-16 grid md:grid-cols-[1fr_auto] gap-8 items-end border-b border-[#414941]/10 pb-12">
+          <div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4">
+              Policy <span className="text-[#97d5a3]">Circles</span>
+            </h1>
+            <div className="flex flex-wrap items-center gap-6">
+              <span className="text-[#c0c9be] font-medium flex items-center gap-2">
+                {MOCK_KOLS.length} agents with TEE-verified execution
+              </span>
+              <span className="flex items-center gap-2 px-3 py-1 bg-[#00613d]/20 text-[#80d8a7] rounded-full text-xs font-bold uppercase tracking-wider border border-[#80d8a7]/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#80d8a7] animate-pulse" />
+                Lit TEE Secured
+              </span>
+            </div>
+          </div>
+          <Link href="/register" className="bg-gradient-to-r from-[#255f38] to-[#00613d] text-[#d9e7c8] px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] flex items-center gap-3 shadow-[0_0_20px_rgba(37,95,56,0.3)] hover:brightness-110 transition-all active:scale-95">
+            Register Your Agent
+          </Link>
+        </header>
+
+        {/* Strategy Feed */}
+        <section className="space-y-8 mb-24">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-lg font-bold uppercase tracking-widest text-[#d9e7c8]/80">Active Strategies</h2>
+            <div className="h-px flex-grow mx-8 bg-[#414941]/20" />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#97d5a3] animate-pulse shadow-[0_0_8px_#97d5a3]" />
+              <span className="text-[10px] font-mono text-[#8a9389] uppercase">Live Sync</span>
+            </div>
+          </div>
+
+          {MOCK_KOLS.map((kol, i) => (
+            <div key={kol.nft.tokenId} className="bg-[#2d3822]/60 backdrop-blur-xl p-8 border-l-4 border-[#97d5a3] shadow-2xl relative overflow-hidden group hover:bg-[#2d3822]/80 transition-all">
+              {/* Background Number */}
+              <div className="absolute top-0 right-0 text-[10rem] font-bold text-[#97d5a3]/[0.03] leading-none select-none pointer-events-none -top-12 -right-4">
+                {String(i + 1).padStart(2, "0")}
               </div>
-              <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4 bg-gradient-to-r from-[#adc6ff] to-[#4b8eff] bg-clip-text text-transparent">
-                Policy Circles
-              </h1>
-              <p className="text-[#c1c6d7] text-lg max-w-2xl font-light leading-relaxed">
-                {MOCK_KOLS.length} agents with TEE-verified execution. Inherit operational policies — source graphs, filters, and risk guardrails — from proven operators.
-              </p>
+
+              <div className="grid md:grid-cols-[1fr_240px] gap-8 relative z-10">
+                <div className="space-y-4">
+                  {/* Title */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-2xl font-bold">{kol.nft.name}</h3>
+                      <span className="text-[10px] bg-[#2d3822] px-2 py-0.5 text-[#97d5a3] border border-[#97d5a3]/20 uppercase tracking-tighter">TEE Verified</span>
+                    </div>
+                    <p className="text-[#c0c9be]/60 text-sm max-w-lg leading-relaxed">{kol.nft.description}</p>
+                  </div>
+
+                  {/* Policy Tags */}
+                  <div className="flex flex-wrap gap-2">
+                    {kol.policy.sourceGraph.monitoredVenues.map((v) => (
+                      <span key={v} className="px-3 py-1 bg-[#18230f] text-xs text-[#c0c9be]/60 border border-[#414941]/20">Source: {v}</span>
+                    ))}
+                    <span className="px-3 py-1 bg-[#18230f] text-xs text-[#c0c9be]/60 border border-[#414941]/20">
+                      Filters: Safety {kol.policy.candidateFilters.requireContractSafetyScore}+
+                    </span>
+                    <span className="px-3 py-1 bg-[#18230f] text-xs text-[#ffba20]/60 border border-[#ffba20]/10">
+                      Risk: {kol.policy.riskGuardrails.dailyLossLimitPercent}% max loss, {kol.policy.riskGuardrails.maxLeverage}x lev
+                    </span>
+                  </div>
+
+                  {/* TEE Receipts */}
+                  <div className="pt-4 border-t border-[#414941]/10">
+                    <div className="text-[10px] text-[#8a9389] uppercase tracking-widest mb-3">Recent TEE Receipts</div>
+                    <div className="space-y-1.5">
+                      {kol.recentReceipts.map((r) => (
+                        <div key={r.id} className="flex items-center justify-between bg-[#071102] p-3 cursor-pointer hover:bg-[#141f0b] transition-colors">
+                          <div className="flex items-center gap-3">
+                            <span className={`w-2 h-2 rounded-full ${r.adherent ? "bg-[#97d5a3] shadow-[0_0_8px_#97d5a3]" : "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.4)]"}`} />
+                            <span className="font-mono text-[10px] text-[#c0c9be]/40">{r.txHash?.slice(0, 8)}...{r.txHash?.slice(-4)}</span>
+                            <span className={`font-mono text-[10px] font-bold ${r.adherent ? "text-[#97d5a3]" : "text-red-400"}`}>
+                              {r.adherent ? "PASS" : "FAIL"}
+                            </span>
+                          </div>
+                          <span className="text-[9px] font-bold text-[#97d5a3]/60 uppercase tracking-tighter">View on Filecoin</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Score + Button */}
+                <div className="flex flex-col justify-between">
+                  <div className="text-right">
+                    <div className="text-4xl font-bold text-[#97d5a3]">{kol.identity.reputationScore}</div>
+                    <div className="text-[10px] text-[#8a9389] uppercase tracking-widest">Rep Score</div>
+                    <div className="text-sm text-[#c0c9be]/40 mt-1 font-mono">{kol.identity.activeAdopters} adopters</div>
+                    {/* Sparkline */}
+                    <div className="flex items-end justify-end gap-1 h-8 mt-4">
+                      {[0.4, 0.6, 0.5, 0.8, 0.7, 0.9, 1.0].map((h, j) => (
+                        <div key={j} className="w-1 bg-[#97d5a3] rounded-t-sm transition-all" style={{ height: `${h * 100}%`, opacity: 0.2 + h * 0.8 }} />
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelected(kol)}
+                    className="w-full bg-[#2d3822] text-[#d9e7c8] font-bold text-xs uppercase tracking-widest py-4 border border-[#414941]/30 hover:bg-[#97d5a3] hover:text-[#003919] transition-all active:scale-95 mt-4"
+                  >
+                    Inherit Policy
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* MCP Integration */}
+        <section className="bg-[#141f0b] p-12 border border-[#414941]/10 relative overflow-hidden mb-16">
+          <div className="absolute top-0 right-0 p-8 opacity-5 text-[120px] leading-none select-none pointer-events-none font-bold">MCP</div>
+          <div className="max-w-2xl relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-3 h-3 rounded-full bg-[#97d5a3] shadow-[0_0_8px_#97d5a3]" />
+              <h2 className="text-2xl font-bold uppercase tracking-tight">Agent Integration (MCP)</h2>
+            </div>
+            <p className="text-[#c0c9be]/60 mb-8 leading-relaxed">
+              Connect directly to your local operator terminal via Model Context Protocol. Your agent monitors proofs and inherits policies in real-time — no browser needed.
+            </p>
+            <div className="bg-[#071102] border border-[#414941]/20 p-6 relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-400/40" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#97d5a3]/40" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#80d8a7]/40" />
+                </div>
+                <div className="text-[10px] font-mono text-[#8a9389] uppercase tracking-widest">bash — node</div>
+              </div>
+              <code className="text-[#97d5a3] font-mono text-sm">npx tsx scripts/mcp-server.ts</code>
             </div>
           </div>
         </section>
-
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Strategy Feed */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            <div className="flex items-center justify-between px-2">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#c1c6d7]">Live Strategy Feed</h2>
-              <div className="flex gap-2 items-center">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-medium text-green-500/80">LIVE SYNC</span>
-              </div>
-            </div>
-
-            {MOCK_KOLS.map((kol) => (
-              <div key={kol.nft.tokenId} className="bg-[#201f1f]/40 backdrop-blur-xl border border-[#8b90a0]/15 rounded-2xl p-6 transition-all hover:bg-[#2a2a2a]/60 group relative border-l-4 border-l-transparent hover:border-l-[#adc6ff]">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-5">
-                  <div>
-                    <h3 className="font-bold text-[#adc6ff] text-lg flex items-center gap-2">
-                      {kol.nft.name}
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#ffba20]" title="TEE Verified" />
-                    </h3>
-                    <p className="text-xs text-[#c1c6d7]/60 mt-0.5">
-                      {kol.identity.activeAdopters} adopters &middot; {kol.identity.reputationScore} rep &middot; TEE Verified
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[#adc6ff] font-bold text-lg font-mono">{kol.identity.reputationScore}</div>
-                    <div className="text-[10px] text-[#c1c6d7]/40 uppercase tracking-widest">Rep Score</div>
-                  </div>
-                </div>
-
-                <p className="text-[#c1c6d7]/70 mb-5 text-sm leading-relaxed">{kol.nft.description}</p>
-
-                {/* Policy Tags */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {kol.policy.sourceGraph.monitoredVenues.map((v) => (
-                    <span key={v} className="px-3 py-1 rounded-full bg-[#141414] text-xs text-[#c1c6d7]/70 border border-white/5">Source: {v}</span>
-                  ))}
-                  <span className="px-3 py-1 rounded-full bg-[#141414] text-xs text-[#c1c6d7]/70 border border-white/5">
-                    Filters: Safety {kol.policy.candidateFilters.requireContractSafetyScore}+
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-[#141414] text-xs text-[#ffba20]/70 border border-[#ffba20]/10">
-                    Guardrails: {kol.policy.riskGuardrails.dailyLossLimitPercent}% max loss
-                  </span>
-                </div>
-
-                {/* Recent Receipts */}
-                <div className="bg-[#0a0a0a]/50 rounded-xl p-4 mb-6">
-                  <div className="text-[10px] font-bold text-[#c1c6d7]/30 uppercase tracking-widest mb-3">Recent TEE Receipts</div>
-                  <div className="flex flex-col gap-1.5">
-                    {kol.recentReceipts.map((r) => (
-                      <div key={r.id} className="flex items-center justify-between text-xs p-2 rounded-lg hover:bg-white/5 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <span className={`w-2 h-2 rounded-full ${r.adherent ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.4)]"}`} />
-                          <span className="font-mono text-[#c1c6d7]/50">{r.txHash?.slice(0, 8)}...{r.txHash?.slice(-4)}</span>
-                          <span className={`font-mono text-xs ${r.pnlPercent >= 0 ? "text-green-400" : "text-red-400"}`}>
-                            {r.pnlPercent >= 0 ? "+" : ""}{r.pnlPercent.toFixed(1)}%
-                          </span>
-                        </div>
-                        <span className={`text-xs font-bold ${r.adherent ? "text-green-400" : "text-red-400"}`}>
-                          {r.adherent ? "PASS" : "FAIL"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setSelected(kol)}
-                  className="w-full py-3.5 bg-[#4b8eff] hover:bg-[#adc6ff] text-[#00285c] font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-[#4b8eff]/10"
-                >
-                  Inherit Policy &rarr; My Agent
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Right Column */}
-          <div className="lg:col-span-4 flex flex-col gap-8">
-            {/* TEE Terminal */}
-            <div className="bg-[#201f1f]/40 backdrop-blur-xl border border-[#8b90a0]/15 rounded-2xl overflow-hidden">
-              <div className="bg-[#0a0a0a] p-3 border-b border-white/5 flex items-center justify-between">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-400/40" />
-                  <div className="w-3 h-3 rounded-full bg-[#ffba20]/40" />
-                  <div className="w-3 h-3 rounded-full bg-[#adc6ff]/40" />
-                </div>
-                <span className="text-[10px] font-mono text-[#c1c6d7]/30">LIT-TEE-NODE-042</span>
-              </div>
-              <div className="p-5 font-mono text-[11px] h-[320px] overflow-y-auto bg-black/40 space-y-2 leading-relaxed">
-                <div className="text-[#adc6ff]">&gt; Initializing enclave...</div>
-                <div className="text-[#c1c6d7]/50">[SYSTEM] Loading PolicyBundle from Filecoin</div>
-                <div className="text-[#c1c6d7]/50">[AUTH] Verifying TEE Signature via ecrecover</div>
-                <div className="text-[#ffba20] animate-pulse">&gt; Executing in Lit TEE enclave...</div>
-                <div className="text-[#c1c6d7]/50">[INFO] Evaluating Source Graph: Hyperliquid</div>
-                <div className="text-[#c1c6d7]/50">[INFO] Applying Candidate Filters...</div>
-                <div className="text-[#adc6ff]">&gt; Checking Risk Guardrails...</div>
-                <div className="text-[#c1c6d7]/50">[GUARD] dailyLossLimit: 5.0% — OK</div>
-                <div className="text-[#c1c6d7]/50">[GUARD] maxLeverage: 3x — OK</div>
-                <div className="text-[#c1c6d7]/50">[GUARD] killSwitch: ACTIVE</div>
-                <div className="text-green-400 font-bold mt-3">PASS — Policy Adherence Verified</div>
-                <div className="text-[#adc6ff]">&gt; Signing receipt with ECDSA (Lit PKP)...</div>
-                <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10 space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-[10px] text-[#c1c6d7]/40 uppercase">CID</span>
-                    <span className="text-[#adc6ff]">bafybeig...a3f9</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[10px] text-[#c1c6d7]/40 uppercase">Chain</span>
-                    <span className="text-[#adc6ff]">Base Sepolia</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[10px] text-[#c1c6d7]/40 uppercase">Block</span>
-                    <span className="text-[#adc6ff]">#39536603</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* MCP Section */}
-            <div className="bg-[#201f1f]/40 backdrop-blur-xl border border-[#8b90a0]/15 rounded-2xl p-8">
-              <h3 className="text-lg font-bold mb-2">Agent Integration (MCP)</h3>
-              <p className="text-[#c1c6d7]/50 text-sm mb-6">Connect your agents directly via Model Context Protocol to inherit policies automatically.</p>
-              <div className="bg-[#0a0a0a] rounded-xl p-4 border border-white/5 mb-6 relative">
-                <code className="text-[#adc6ff] text-xs font-mono">npx tsx scripts/mcp-server.ts</code>
-              </div>
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#adc6ff]/5 border border-[#adc6ff]/10">
-                <div className="text-xs">
-                  <div className="font-bold">Universal Connector</div>
-                  <div className="text-[#c1c6d7]/50">Works with Claude Code, Cursor &amp; any MCP client</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="py-12 px-8 border-t border-[#414941]/10 text-center">
+        <div className="text-2xl font-bold text-[#97d5a3]/20 uppercase tracking-tighter mb-4">AgentCircle</div>
+        <div className="text-[10px] text-[#8a9389] uppercase tracking-[0.4em]">Private Policy Inheritance Protocol &bull; PL_Genesis 2026</div>
+      </footer>
 
       {/* Inherit Dialog */}
       {selected && (

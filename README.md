@@ -1,29 +1,29 @@
 # AgentCircle
 
-> **Private Policy Inheritance for Crypto Agents.**
-> Built for the **PL_Genesis: Frontiers of Collaboration Hackathon**.
+> **Private Policy Inheritance Protocol for Crypto Agents.**
+> Built for **PL_Genesis: Frontiers of Collaboration Hackathon** (March 2026).
 
 ---
 
 ## The Problem
 
-AI agents are everywhere — trading, farming, sniping, managing portfolios. But the best operators keep their edge locked behind private setups that nobody else can access or verify.
+AI agents are everywhere — trading, farming, sniping, managing portfolios. But the best operators keep their edge locked behind private setups nobody can access or verify.
 
-- **No way to share operational knowledge without destroying it.** If you open-source your agent config, the alpha gets crowded and dies. If you keep it private, nobody benefits.
-
-- **No way to verify that a config actually works.** Agent leaderboards rely on self-reported PnL and fakeable star reviews. There's no cryptographic proof of performance.
-
-- **No agent-native payment for expertise.** Paid Telegram groups share human-readable text. There's no way for agents to programmatically inherit, pay for, and enforce operational policies from other agents.
+- **No way to share operational knowledge without destroying it.** Open-source your config → alpha gets crowded and dies. Keep it private → nobody benefits.
+- **No way to verify that a config actually works.** Agent leaderboards rely on self-reported PnL and fakeable star reviews. Zero cryptographic proof of performance.
+- **No agent-native payment for expertise.** Paid Telegram groups share human-readable text. No way for agents to programmatically inherit, pay for, and enforce operational policies from other agents.
 
 ---
 
-## The Solution: AgentCircle
+## The Solution
 
-AgentCircle is a **private policy inheritance protocol**. Operators publish structured configs — not trades, not prompts, but the upstream decision framework: what to observe, what to filter, what to prohibit. Followers pay to join a gated circle and their agents inherit those policies automatically.
+AgentCircle is a **private policy inheritance protocol**. Operators publish structured configs — not trades, not prompts — but the upstream decision framework: what to observe, what to filter, what to prohibit. Followers pay to join a gated circle and their agents inherit those policies automatically.
+
+**You're not copying trades. You're inheriting the decision framework that produces them.**
 
 ### What Gets Shared (PolicyBundle)
 
-A PolicyBundle is a structured, machine-readable JSON config that any agent framework can consume. It's not a prompt — it's the operating rules:
+A structured, machine-readable JSON config that any agent framework can consume:
 
 | Module | What It Defines | Example |
 |--------|----------------|---------|
@@ -31,54 +31,88 @@ A PolicyBundle is a structured, machine-readable JSON config that any agent fram
 | **Candidate Filters** | What passes screening | Min $100K liquidity, no meme coins, safety score 75+ |
 | **Risk Guardrails** | What the agent is prohibited from doing | Max 3x leverage, 5% daily loss limit, kill switch on |
 
-```json
-{
-  "sourceGraph": { "monitoredVenues": ["Hyperliquid"], "eventTypes": ["LARGE_INFLOW"] },
-  "candidateFilters": { "minLiquidityUSD": 100000, "blacklistedSectors": ["Meme"] },
-  "riskGuardrails": { "dailyLossLimitPercent": 5.0, "killSwitchEnabled": true }
-}
-```
-
 ### What Does NOT Get Shared
 
-- Raw trades or live positions (downstream, fragile, crowds instantly)
+- Raw trades or live positions (downstream output — leaks and crowds instantly)
 - Full prompts or chain-of-thought (share the decision rubric, not the text)
-- API keys, wallet keys, private relationships (secrets, never productized)
-- Exact execution timing or routing sequences (the execution edge stays in the TEE)
-
-### How Trust Works
-
-1. A **Trusted Execution Environment** (Lit Protocol TEE) enforces the policy guardrails and signs every execution result with ECDSA.
-2. The smart contract verifies the TEE's signature via `ecrecover` — anyone can submit the receipt and pay gas, but only a valid TEE signature updates reputation.
-3. Execution receipts are stored on **Filecoin** (via Storacha), with the CID committed on-chain to the **ERC-8004 Reputation Registry**.
-4. Reputation is computed from real, cryptographically verified outcomes — not reviews, not self-reports.
+- API keys, wallet keys, secrets (never productized)
+- Exact execution timing or routing (the execution edge stays in the TEE)
 
 ---
 
-## System Architecture
+## How It Works (No Mocks)
+
+Every step is a real on-chain operation. Zero mocked workflows.
 
 ```mermaid
 sequenceDiagram
-    participant H as Human (sets policies once)
-    participant A as Agent (autonomous loop)
-    participant T as Lit Protocol (TEE)
-    participant S as Storacha (Filecoin)
-    participant C as AgentPolicyRegistry (Base)
+    participant F as Follower Agent
+    participant C as AgentPolicyRegistry (Base Sepolia)
+    participant T as TEE (Lit Protocol)
+    participant S as Filecoin (Storacha)
 
-    H->>A: 1. Configure PolicyBundle + budget constraints
-    A->>T: 2. Execute with inherited policy inside TEE
-    Note over T: TEE fetches real on-chain data via RPC<br/>Evaluates policy adherence<br/>Signs result with ECDSA (Lit PKP)
-    T-->>A: 3. Return signed AgentLogReceipt
-    A->>C: 4. Submit receipt + TEE signature on-chain
-    Note over C: ecrecover verifies TEE signature<br/>Updates reputation score
-    A->>S: 5. Upload full receipt JSON (async, non-blocking)
+    F->>C: 1. createAndFundJob(agentId) — ERC-8183 escrow lock
+    C-->>F: Job created, ETH locked
+    F->>C: 2. getAgentVerification(agentId) — ERC-8126 risk check
+    C-->>F: riskScore: 15/100 (LOW RISK), isVerified: true
+    F->>T: 3. Execute strategy inside TEE enclave
+    Note over T: TEE evaluates policy adherence<br/>Signs receipt with ECDSA (Lit PKP)
+    T-->>F: 4. Return signed AgentLogReceipt
+    F->>C: 5. submitExecutionReceipt(agentId, CID, adherence, sig)
+    Note over C: ecrecover verifies TEE signature<br/>Updates reputation (ERC-8004)
+    F->>S: 6. Upload full receipt JSON (async)
 ```
+
+### On-Chain Contracts
+
+| Function | EIP | What It Does |
+|----------|-----|-------------|
+| `registerAgent()` | ERC-8004 | Register agent with TEE key, policy CID, operator wallet |
+| `submitExecutionReceipt()` | ERC-8004 | ECDSA-verified receipt → reputation update (anyone can submit) |
+| `createAndFundJob()` | ERC-8183 | Lock ETH in escrow, risk-gated (rejects score > 80) |
+| `completeJob()` | ERC-8183 | TEE evaluator releases escrow to agent owner |
+| `claimRefund()` | ERC-8183 | Client reclaims after expiry |
+| `getAgentVerification()` | ERC-8126 | Read `(isVerified, riskScore)` on-chain |
+| `setRiskScore()` | ERC-8126 | Set risk score (owner/operator only) |
+| `joinCircle()` / `leaveCircle()` | ERC-8004 | Adopter tracking |
 
 ### Key Design Decisions
 
-- **ecrecover, not msg.sender** — The contract verifies the TEE's ECDSA signature, not who sends the transaction. Anyone can pay gas. The TEE never needs ETH.
-- **Async storage** — On-chain tx goes first with deterministic CID. Filecoin upload happens in background. Blockchain never blocked by storage.
-- **TEE is the oracle** — TEE fetches real trade data via RPC inside the enclave. Does not trust client-supplied PnL.
+- **ecrecover, not msg.sender** — Contract verifies TEE's ECDSA signature, not who sends the tx. Anyone can pay gas. TEE never needs ETH.
+- **Async storage** — On-chain tx goes first. Filecoin upload is fire-and-forget. Blockchain never blocked by storage.
+- **TEE is the oracle** — TEE fetches real data via RPC. Does not trust client-supplied PnL.
+- **Risk gating** — ERC-8126 risk score checked on-chain before escrow creation. Score > 80 → transaction reverts.
+- **Replay protection** — Each TEE signature can only be used once (hash-based dedup + s-value check).
+
+---
+
+## Deployed Contract
+
+| Network | Address | Explorer |
+|---------|---------|----------|
+| Base Sepolia | `0x899bd273ad6c1e1191df43a3e8756e773517a20b` | [View on Basescan](https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b) |
+
+**23/23 Foundry tests passing** — ECDSA verification, escrow lock/release/refund, risk gating, replay protection, adopter tracking.
+
+---
+
+## MCP Integration (Agent-Native)
+
+Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies without a browser:
+
+```json
+{
+  "mcpServers": {
+    "agentcircle": {
+      "command": "npx",
+      "args": ["tsx", "scripts/mcp-server.ts"],
+      "env": { "API_BASE": "http://localhost:3000" }
+    }
+  }
+}
+```
+
+**Tools:** `list_circles` (browse available agents) and `inherit_agent_policy` (execute TEE-verified inheritance).
 
 ---
 
@@ -86,11 +120,11 @@ sequenceDiagram
 
 | Track | Integration |
 |-------|-------------|
-| **Ethereum Foundation** — Agents With Receipts (8004) | Core architecture. ERC-8004 identity + reputation from TEE-signed execution receipts. |
-| **Ethereum Foundation** — Let the Agent Cook | Fully autonomous loop: human sets policies, agent inherits, executes, logs receipts, updates reputation. |
-| **Protocol Labs** — AI & Robotics | Agent-to-agent policy sharing with cryptographic proof of reasoning. |
-| **Lit Protocol** — NextGen AI Apps | Strategy execution inside Lit TEE nodes. Followers execute but cannot read proprietary logic. |
-| **Filecoin Foundation** — Agent Infrastructure | Execution receipts stored on Filecoin via Storacha. CID-rooted portable agent identity. |
+| **EF: Agents With Receipts — 8004** | ERC-8004 identity + reputation from TEE-signed execution receipts |
+| **EF: Let the Agent Cook** | Autonomous loop: human sets policies, agent inherits, executes, logs receipts |
+| **PL: AI & Robotics** | Agent-to-agent policy sharing with cryptographic proof |
+| **Lit Protocol: NextGen AI Apps** | Strategy execution inside Lit TEE nodes |
+| **Filecoin Foundation: Agent Infrastructure** | Execution receipts on Filecoin, CID-rooted portable identity |
 
 ---
 
@@ -100,9 +134,10 @@ sequenceDiagram
 |-------|------------|
 | Frontend | Next.js 16 (App Router), Tailwind CSS v4, shadcn/ui |
 | Web3 Client | viem, wagmi (Base Sepolia) |
-| Smart Contracts | Solidity 0.8.24+, Foundry, ECDSA verification |
+| Smart Contracts | Solidity 0.8.33, Foundry, inline ECDSA (no OZ) |
 | TEE | Lit Protocol SDK v7.4 (datil-dev) |
-| Storage | Storacha / w3up-client v17.3 |
+| Storage | Filecoin via Storacha bridge |
+| Agent Interface | MCP Server (stdio transport) |
 | Package Manager | pnpm |
 
 ---
@@ -111,9 +146,7 @@ sequenceDiagram
 
 ### Prerequisites
 
-- Node.js >= 20
-- pnpm >= 8
-- Foundry (`forge` / `cast`)
+- Node.js >= 20, pnpm >= 8, Foundry (`forge` / `cast`)
 
 ### Setup
 
@@ -121,6 +154,7 @@ sequenceDiagram
 git clone https://github.com/PL-Genesis-AgentCircle/AgentCircle.git
 cd AgentCircle
 pnpm install
+cp .env.example .env.local  # Fill in your keys
 ```
 
 ### Smart Contracts
@@ -128,29 +162,58 @@ pnpm install
 ```bash
 cd contracts
 forge build
-forge test -vv  # 16/16 tests passing (ECDSA verification)
+forge test -vv  # 23/23 tests passing
+```
+
+### Deploy to Base Sepolia
+
+```bash
+export $(grep -v '^#' ../.env.local | grep -v '^$' | xargs)
+forge script script/Deploy.s.sol --rpc-url https://base-sepolia-rpc.publicnode.com \
+  --broadcast --private-key 0x$PRIVATE_KEY
+```
+
+### Register an Agent
+
+```bash
+npx tsx scripts/register-agent.ts
 ```
 
 ### Run the App
 
 ```bash
 pnpm dev
-# Open http://localhost:3000
+# Homepage:       http://localhost:3000
+# Policy Circles: http://localhost:3000/circles
+# Register Agent: http://localhost:3000/register
 ```
 
 ### Test APIs
 
 ```bash
-# TEE Execution
+# TEE Execution (returns ECDSA-signed receipt)
 curl -s -X POST http://localhost:3000/api/execute \
   -H "Content-Type: application/json" \
-  -d '{"request":{"followerWallet":"0xFollower1234567890abcdef1234567890abcdef","inheritedPolicyId":"1","targetTxHash":null},"policy":{"version":"1.0","sourceGraph":{"trackedWalletClusters":["Smart Money 100"],"monitoredVenues":["Hyperliquid"],"eventTypes":["LARGE_INFLOW"]},"candidateFilters":{"minTokenAgeHours":24,"minLiquidityUSD":50000,"maxFDV":null,"blacklistedSectors":["Meme"],"requireContractSafetyScore":70},"riskGuardrails":{"maxPositionSizeUSDC":10000,"maxLeverage":3,"dailyLossLimitPercent":5.0,"killSwitchEnabled":true}}}' | python3 -m json.tool
+  -d '{"request":{"followerWallet":"0x557E1E07652B75ABaA667223B11704165fC94d09","inheritedPolicyId":"1","targetTxHash":null},"policy":{"version":"1.0","sourceGraph":{"trackedWalletClusters":["Smart Money 100"],"monitoredVenues":["Hyperliquid"],"eventTypes":["LARGE_INFLOW"]},"candidateFilters":{"minTokenAgeHours":24,"minLiquidityUSD":50000,"maxFDV":null,"blacklistedSectors":["Meme"],"requireContractSafetyScore":70},"riskGuardrails":{"maxPositionSizeUSDC":10000,"maxLeverage":3,"dailyLossLimitPercent":5.0,"killSwitchEnabled":true}}}' | python3 -m json.tool
 
-# Storacha Upload
-curl -s -X POST http://localhost:3000/api/upload \
-  -H "Content-Type: application/json" \
-  -d '{"receipt":{"followerWallet":"0xFollower1234567890abcdef1234567890abcdef","providerAgentId":"1","timestamp":0,"policyAdherenceVerified":false,"executionSuccess":true,"metrics":{"latency_ms":320,"slippage_bps":45},"onChainTxHash":null,"teeSignature":"0x"}}' | python3 -m json.tool
+# Submit receipt on-chain (real ECDSA verification)
+npx tsx scripts/test-submit.ts
 ```
+
+---
+
+## API Routes
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/api/execute` | TEE execution + ECDSA signing |
+| POST | `/api/upload` | Filecoin receipt upload |
+| POST | `/api/agents/register` | Register new agent |
+| GET | `/api/agents/[id]` | Read agent details |
+| POST | `/api/circles/join` | Join a policy circle |
+| POST | `/api/circles/leave` | Leave a circle |
+| GET | `/api/circles/[id]` | List circle members |
+| GET | `/api/policies/[id]` | Read PolicyBundle |
 
 ---
 

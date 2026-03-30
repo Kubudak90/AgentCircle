@@ -1,6 +1,6 @@
 # AgentCircle
 
-> **Private Policy Inheritance Protocol for Crypto Agents.**
+> **The trust and payment layer for AI agent policy sharing.**
 > Built for **PL_Genesis: Frontiers of Collaboration Hackathon** (March 2026).
 
 ---

@@ -84,7 +84,8 @@ function TeePulse() {
 export default function InheritDialog({ kol, open, onOpenChange }: Props) {
   const maxLoss = kol.policy.riskGuardrails.dailyLossLimitPercent;
   const [lossOverride, setLossOverride] = useState(maxLoss);
-  const [wallet, setWallet] = useState("0xFollower1234567890abcdef1234567890abcdef");
+  const { isConnected, chainId, address } = useAccount();
+  const [wallet, setWallet] = useState("");
   const [phase, setPhase] = useState<"form" | "terminal">("form");
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [visibleCount, setVisibleCount] = useState(0);
@@ -93,9 +94,13 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
   const [copied, setCopied] = useState(false);
   const termRef = useRef<HTMLDivElement>(null);
 
-  const { isConnected, chainId } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const { switchChainAsync } = useSwitchChain();
+
+  // Auto-fill wallet from connected address
+  useEffect(() => {
+    if (address && !wallet) setWallet(address);
+  }, [address, wallet]);
 
   const log = useCallback((text: string, color: LogLine["color"] = "green") => {
     setLogs((prev) => {

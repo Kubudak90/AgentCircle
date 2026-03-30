@@ -156,6 +156,15 @@
 .animate-float-3 { animation: float-particle 20s ease-in-out infinite 4s; }
 .animate-pulse-subtle { animation: pulse-subtle 2.5s ease-in-out infinite; }
 
+/* TEE scanline animation */
+@keyframes tee-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(calc(100vh)); }
+}
+.animate-tee-scan {
+  animation: tee-scan 3s linear infinite;
+}
+
 /* Glass card hover glow */
 .glass-card {
   backdrop-filter: blur(24px);

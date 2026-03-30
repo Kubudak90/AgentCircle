@@ -246,8 +246,8 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
       }
 
       log(`> TEE Signature: ${receipt.teeSignature.slice(0, 22)}...`, "white");
-      log(`> Mock PKP Address: ${mockPkpAddress}`, "white");
-      log(`> Receipt CID: ${receiptCID}`, "cyan");
+      log(`> TEE Signer: ${mockPkpAddress}`, "white");
+      log(`> Signed CID: ${receiptCID}`, "cyan");
 
       setResultCID(receiptCID);
 
@@ -297,13 +297,15 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
 
         log("> Requesting wallet signature...", "cyan");
 
+        // CRITICAL: Must use receiptCID (the one the TEE signed over), not uploadCID
+        // The Filecoin upload CID is for data availability; the on-chain CID must match the signature
         const hash = await writeContractAsync({
           address: REGISTRY_ADDRESS,
           abi: REGISTRY_ABI,
           functionName: "submitExecutionReceipt",
           args: [
             BigInt(kol.identity.agentId),
-            uploadCID,
+            receiptCID,
             receipt.policyAdherenceVerified,
             receipt.teeSignature as `0x${string}`,
           ],
@@ -311,17 +313,35 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         });
 
         setTxHash(hash);
-        setResultCID(uploadCID);
+        setResultCID(receiptCID);
         log(`> Tx: ${hash}`, "cyan");
         log("> Receipt logged to ERC-8004 Registry.", "green");
         log("> Done.", "green");
 
         toast.success("Receipt logged to ERC-8004", { description: `Tx: ${hash.slice(0, 14)}...` });
       } catch (txErr: any) {
-        const msg = txErr?.shortMessage || txErr?.message || "Transaction failed";
-        log(`> Tx failed: ${msg}`, "red");
+        const raw = txErr?.shortMessage || txErr?.message || "Transaction failed";
+        if (raw.includes("InvalidSignature")) {
+          log("> [ERROR] InvalidSignature — TEE signature verification failed.", "red");
+          log(">   Check TEE_PRIVATE_KEY matches registered teePublicKey", "yellow");
+          log(">   Check CHAIN_ID and REGISTRY_ADDRESS in .env.local", "yellow");
+          log(">   Run: npx tsx scripts/test-submit.ts to verify", "yellow");
+        } else if (raw.includes("ReceiptAlreadyUsed")) {
+          log("> [ERROR] Receipt already submitted (replay protection).", "red");
+          log(">   Execute again to generate a new signature.", "yellow");
+        } else if (raw.includes("AgentNotFound")) {
+          log("> [ERROR] Agent not registered on-chain.", "red");
+          log(">   Run: npx tsx scripts/register-agent.ts", "yellow");
+        } else if (raw.includes("gas limit")) {
+          log("> [ERROR] Contract call reverted (gas estimation failed).", "red");
+          log(">   TEE signature likely doesn't match on-chain data.", "yellow");
+          log(">   Verify: contract address, chain ID, TEE key alignment.", "yellow");
+        } else {
+          log(`> [ERROR] ${raw}`, "red");
+        }
+        log("> Receipt preserved off-chain with CID + signature.", "yellow");
         log("> Done (off-chain only).", "green");
-        toast.error("On-chain tx failed", { description: msg });
+        toast.error("On-chain tx failed", { description: raw.slice(0, 80) });
       }
     } catch (err: any) {
       log(`> ERROR: ${err.message}`, "red");

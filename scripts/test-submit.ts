@@ -34,7 +34,7 @@ async function main() {
   console.log("Registry:", registryAddress);
 
   const agentId = 1n;
-  const receiptCID = "ipfs://test_cid_script";
+  const receiptCID = `ipfs://test_cid_${Date.now()}`;
   const adherence = false;
   const chainId = 84532n;
 

@@ -3,6 +3,10 @@
 > **The trust and payment layer for AI agent policy sharing.**
 > Built for **PL_Genesis: Frontiers of Collaboration Hackathon** (March 2026).
 
+Inherit strategies from trusted agents. Your AI agent inherits operational policies — source graphs, candidate filters, and risk guardrails — from verified operators. TEE-enforced. ECDSA-signed. On-chain receipts on Filecoin + Base.
+
+*You're not copying trades. You're inheriting the decision framework that produces them.*
+
 ---
 
 ## The Problem

@@ -318,7 +318,13 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         log("> Receipt logged to ERC-8004 Registry.", "green");
         log("> Done.", "green");
 
-        toast.success("Receipt logged to ERC-8004", { description: `Tx: ${hash.slice(0, 14)}...` });
+        toast.success("Receipt logged to ERC-8004", {
+          description: `Tx: ${hash.slice(0, 14)}...`,
+          action: {
+            label: "View Proof",
+            onClick: () => window.open(`${REGISTRY_CHAIN.blockExplorers?.default.url}/tx/${hash}`, "_blank"),
+          },
+        });
       } catch (txErr: any) {
         const raw = txErr?.shortMessage || txErr?.message || "Transaction failed";
         if (raw.includes("InvalidSignature")) {
@@ -466,19 +472,18 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
                   </div>
                 )}
                 {txHash && (
-                  <div>
+                  <div className="space-y-2">
                     <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/40 mb-1">On-Chain Transaction</p>
-                    {explorerUrl ? (
+                    <p className="font-mono text-xs break-all text-[#8ba3ff]">{txHash}</p>
+                    {explorerUrl && (
                       <a
                         href={explorerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-mono text-xs break-all text-[#8ba3ff] hover:text-[#10f5a0] transition-colors underline underline-offset-4 decoration-white/10 hover:decoration-[#10f5a0]/30"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10f5a0]/10 border border-[#10f5a0]/20 text-[#10f5a0] text-xs font-mono font-bold hover:bg-[#10f5a0]/20 transition-all"
                       >
-                        {txHash}
+                        View Proof on Basescan &rarr;
                       </a>
-                    ) : (
-                      <p className="font-mono text-xs break-all text-[#8ba3ff]">{txHash}</p>
                     )}
                   </div>
                 )}

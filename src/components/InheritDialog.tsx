@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useAccount, useWriteContract, useSwitchChain } from "wagmi";
+import { useAccount, useWriteContract, useSwitchChain, usePublicClient } from "wagmi";
 import {
   Dialog,
   DialogContent,
@@ -96,6 +96,7 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
 
   const { writeContractAsync } = useWriteContract();
   const { switchChainAsync } = useSwitchChain();
+  const publicClient = usePublicClient();
 
   // Auto-fill wallet from connected address
   useEffect(() => {
@@ -136,14 +137,53 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
     log(`> Agent: ${kol.nft.name} (ID: ${kol.identity.agentId})`);
     await delay(500);
 
-    log("> [MOCK] ERC-8183 Escrow: Locking membership fee...", "yellow");
-    await delay(1500);
-    log("> [MOCK] Escrow locked. Status: ACTIVE", "yellow");
+    // ─── ERC-8183: Real Escrow Lock (on-chain) ───
+    log("> ERC-8183 Escrow: Creating and funding job...", "yellow");
+    try {
+      if (isConnected && chainId !== REGISTRY_CHAIN.id) {
+        await switchChainAsync({ chainId: REGISTRY_CHAIN.id });
+      }
+      if (isConnected) {
+        const escrowTx = await writeContractAsync({
+          address: REGISTRY_ADDRESS,
+          abi: REGISTRY_ABI,
+          functionName: "createAndFundJob",
+          args: [BigInt(kol.identity.agentId)],
+          value: 0n, // 0 ETH for demo (real: membership fee)
+          chainId: REGISTRY_CHAIN.id,
+        });
+        log(`> Escrow locked. Tx: ${escrowTx.slice(0, 14)}...`, "green");
+      } else {
+        log("> Escrow: Wallet not connected, skipping on-chain lock.", "yellow");
+      }
+    } catch (escrowErr: any) {
+      log(`> Escrow lock skipped: ${escrowErr?.shortMessage || "wallet rejected"}`, "yellow");
+    }
     await delay(400);
 
-    log("> [MOCK] ERC-8126 Risk Scan: Running ZK verification...", "yellow");
-    await delay(1800);
-    log("> [MOCK] Risk Score: 12 / 100 (LOW RISK). Cleared.", "yellow");
+    // ─── ERC-8126: Real Risk Check (on-chain read) ───
+    log("> ERC-8126 Risk Scan: Reading on-chain verification...", "yellow");
+    try {
+      if (publicClient) {
+        const [isVerified, overallRiskScore] = await publicClient.readContract({
+          address: REGISTRY_ADDRESS,
+          abi: REGISTRY_ABI,
+          functionName: "getAgentVerification",
+          args: [BigInt(kol.identity.agentId)],
+        });
+        const riskTier = overallRiskScore <= 20 ? "LOW RISK" : overallRiskScore <= 40 ? "MODERATE" : overallRiskScore <= 60 ? "ELEVATED" : overallRiskScore <= 80 ? "HIGH RISK" : "CRITICAL";
+        if (overallRiskScore > 80) {
+          log(`> [BLOCKED] Risk Score: ${overallRiskScore} / 100 (${riskTier}). Too risky.`, "red");
+          toast.error("Agent risk score too high");
+          return;
+        }
+        log(`> Risk Score: ${overallRiskScore} / 100 (${riskTier}). Verified: ${isVerified}. Cleared.`, "green");
+      } else {
+        log("> Risk check: No RPC client available, proceeding.", "yellow");
+      }
+    } catch (riskErr: any) {
+      log(`> Risk check unavailable: ${riskErr?.shortMessage || "RPC error"}. Proceeding.`, "yellow");
+    }
     await delay(500);
 
     log("> Initializing Lit Protocol TEE Node...");

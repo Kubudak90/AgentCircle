@@ -7,10 +7,10 @@ import "../src/AgentPolicyRegistry.sol";
 contract AgentPolicyRegistryTest is Test {
     AgentPolicyRegistry registry;
 
-    address owner = address(0xA);
-    address operator = address(0xB);
-    address follower = address(0xD);
-    address relayer = address(0xE); // random gas payer
+    address owner = address(0xA00A);
+    address operator = address(0xB00B);
+    address follower = address(0xD00D);
+    address relayer = address(0xE00E);
 
     // TEE keypair — Foundry vm.sign uses private key to produce real ECDSA sigs
     uint256 constant TEE_PK = 0xBEEF;
@@ -250,6 +250,89 @@ contract AgentPolicyRegistryTest is Test {
         vm.prank(follower);
         vm.expectRevert(AgentPolicyRegistry.NotAdopter.selector);
         registry.leaveCircle(id);
+    }
+
+    // ──────────────────── ERC-8126: Risk Verification ────────────────────
+
+    function test_getAgentVerification_defaults() public {
+        vm.prank(owner);
+        uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
+        (bool verified, uint8 score) = registry.getAgentVerification(id);
+        assertTrue(verified);
+        assertEq(score, 15); // default low risk
+    }
+
+    function test_setRiskScore() public {
+        vm.prank(owner);
+        uint256 id = registry.registerAgent("Bot", operator, "cid", tee);
+
+        vm.prank(owner);
+        registry.setRiskScore(id, 45, true);
+        (, uint8 score) = registry.getAgentVerification(id);
+        assertEq(score, 45);
+    }
+
+    // ──────────────────── ERC-8183: Escrow ────────────────────
+
+    function test_createAndFundJob() public {
+        vm.prank(owner);
+        uint256 agentId = registry.registerAgent("Bot", operator, "cid", tee);
+
+        vm.deal(follower, 1 ether);
+        vm.prank(follower);
+        uint256 jobId = registry.createAndFundJob{value: 0.01 ether}(agentId);
+        assertEq(jobId, 1);
+
+        AgentPolicyRegistry.Job memory job = registry.getJob(jobId);
+        assertEq(job.agentId, agentId);
+        assertEq(job.client, follower);
+        assertEq(job.fundedAmount, 0.01 ether);
+        assertEq(uint8(job.status), uint8(AgentPolicyRegistry.JobStatus.Funded));
+    }
+
+    function test_createAndFundJob_revertHighRisk() public {
+        vm.prank(owner);
+        uint256 agentId = registry.registerAgent("Bot", operator, "cid", tee);
+        vm.prank(owner);
+        registry.setRiskScore(agentId, 85, true); // HIGH RISK
+
+        vm.deal(follower, 1 ether);
+        vm.prank(follower);
+        vm.expectRevert(AgentPolicyRegistry.RiskTooHigh.selector);
+        registry.createAndFundJob{value: 0.01 ether}(agentId);
+    }
+
+    function test_completeJob_releasesEscrow() public {
+        vm.prank(owner);
+        uint256 agentId = registry.registerAgent("Bot", operator, "cid", tee);
+
+        vm.deal(follower, 1 ether);
+        vm.prank(follower);
+        uint256 jobId = registry.createAndFundJob{value: 0.1 ether}(agentId);
+
+        uint256 ownerBalBefore = owner.balance;
+        vm.prank(tee); // TEE is the evaluator
+        registry.completeJob(jobId);
+
+        assertEq(owner.balance, ownerBalBefore + 0.1 ether);
+        assertEq(uint8(registry.getJob(jobId).status), uint8(AgentPolicyRegistry.JobStatus.Completed));
+    }
+
+    function test_claimRefund_afterExpiry() public {
+        vm.prank(owner);
+        uint256 agentId = registry.registerAgent("Bot", operator, "cid", tee);
+
+        vm.deal(follower, 1 ether);
+        vm.prank(follower);
+        uint256 jobId = registry.createAndFundJob{value: 0.05 ether}(agentId);
+
+        // Fast forward past expiry
+        vm.warp(block.timestamp + 2 hours);
+        uint256 followerBalBefore = follower.balance;
+        vm.prank(follower);
+        registry.claimRefund(jobId);
+
+        assertEq(follower.balance, followerBalBefore + 0.05 ether);
     }
 
     // ──────────────────── Edge: nonexistent agent ────────────────────

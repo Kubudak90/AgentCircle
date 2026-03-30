@@ -6,30 +6,32 @@ import "../src/AgentPolicyRegistry.sol";
 
 contract DeployScript is Script {
     function run() external {
+        address teeKey = vm.envAddress("TEE_PUBLIC_KEY");
+
         vm.startBroadcast();
 
         AgentPolicyRegistry registry = new AgentPolicyRegistry();
 
-        // Register demo agents for hackathon
+        // Register demo agents with real TEE key
         registry.registerAgent(
             "Garry's Whale Tracker",
             msg.sender,
-            "ipfs://bafybeigwhale001",
-            msg.sender // TEE key = deployer for demo
+            "ipfs://bafybeimockpolicybundle",
+            teeKey
         );
 
         registry.registerAgent(
             "Degen Spartan Perps",
             msg.sender,
             "ipfs://bafybeigdegen002",
-            msg.sender
+            teeKey
         );
 
         registry.registerAgent(
             "Alpha Liquidity Scanner",
             msg.sender,
             "ipfs://bafybeigalpha003",
-            msg.sender
+            teeKey
         );
 
         vm.stopBroadcast();

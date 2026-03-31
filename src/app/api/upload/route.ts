@@ -1,32 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AgentLogReceipt } from "@/types/schema";
 
-async function uploadToStoracha(receipt: AgentLogReceipt): Promise<string> {
-  const key = process.env.STORACHA_KEY;
-  const spaceDid = process.env.SPACE_DID;
+const BRIDGE_URL = process.env.FILECOIN_BRIDGE_URL || "http://localhost:3001";
 
-  if (!key || !spaceDid) {
-    throw new Error("STORACHA_KEY or SPACE_DID not set");
-  }
+async function uploadViaBridge(receipt: AgentLogReceipt): Promise<{
+  cid: string;
+  storage: string;
+  url: string | null;
+}> {
+  const res = await fetch(`${BRIDGE_URL}/store`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      content: JSON.stringify(receipt),
+      filename: "agent_log.json",
+    }),
+  });
 
-  const { create } = await import("@web3-storage/w3up-client");
-  const client = await create();
-  await client.setCurrentSpace(spaceDid as `did:${string}:${string}`);
+  if (!res.ok) throw new Error(`Bridge returned ${res.status}`);
 
-  const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: "application/json" });
-  const file = new File([blob], "agent_log_receipt.json", { type: "application/json" });
-  const cid = await client.uploadFile(file);
+  const data = await res.json();
 
-  return `ipfs://${cid.toString()}`;
+  return {
+    cid: data.cid,
+    storage: data.storage === "filecoin-foc" ? "filecoin-foc" : "local-fallback",
+    url: data.url || null,
+  };
 }
 
-async function mockUpload(receipt: AgentLogReceipt): Promise<string> {
+async function mockFallback(receipt: AgentLogReceipt): Promise<{
+  cid: string;
+  storage: string;
+  url: string | null;
+}> {
   const encoder = new TextEncoder();
   const data = encoder.encode(JSON.stringify(receipt));
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-  return `ipfs://bafybeig${hashHex.slice(0, 50)}`;
+  return {
+    cid: `ipfs://bafybeig${hashHex.slice(0, 50)}`,
+    storage: "local-fallback",
+    url: null,
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -37,19 +53,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing receipt" }, { status: 400 });
     }
 
-    let cid: string;
-    let mode: string;
+    let result: { cid: string; storage: string; url: string | null };
 
     try {
-      cid = await uploadToStoracha(body.receipt);
-      mode = "storacha";
-    } catch {
-      cid = await mockUpload(body.receipt);
-      mode = "mock";
+      result = await uploadViaBridge(body.receipt);
+    } catch (err: any) {
+      console.error("Filecoin bridge unavailable:", err.message);
+      result = await mockFallback(body.receipt);
     }
 
-    return NextResponse.json({ cid, mode });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json(result);
+  } catch {
+    return NextResponse.json(
+      { cid: "ipfs://error_fallback", storage: "local-fallback", url: null },
+      { status: 200 }
+    );
   }
 }

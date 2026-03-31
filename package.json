@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:all": "concurrently --names next,bridge --prefix-colors blue,green \"next dev\" \"cd filecoin-bridge && node index.js\"",
     "build": "next build",
     "start": "next start",
+    "bridge": "cd filecoin-bridge && node index.js",
     "test:lit": "tsx scripts/test-lit.ts",
     "test:storage": "tsx scripts/test-storage.ts",
     "mcp": "tsx scripts/mcp-server.ts",
@@ -44,6 +46,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.27",
+    "concurrently": "^9.2.1",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
     "tsx": "^4.21.0",

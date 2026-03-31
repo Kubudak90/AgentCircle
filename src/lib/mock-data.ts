@@ -59,9 +59,9 @@ export const MOCK_KOLS: KOLAgent[] = [
       },
     },
     recentReceipts: [
-      { id: "r1-1", timestamp: Date.now() - 1800000, adherent: true, action: "BUY ETH/USDC via Uniswap V3", pnlPercent: 2.3, txHash: "0x598a9a2a7507e335aecf2685c2c1096b4eb69a61" },
-      { id: "r1-2", timestamp: Date.now() - 5400000, adherent: true, action: "BUY ARB/USDC via Hyperliquid", pnlPercent: -0.8, txHash: "0x7b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c" },
-      { id: "r1-3", timestamp: Date.now() - 14400000, adherent: false, action: "SELL DEGEN/USDC via Hyperliquid", pnlPercent: -6.1, txHash: "0xa1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0" },
+      { id: "r1-1", timestamp: Date.now() - 1800000, adherent: true, action: "BUY ETH/USDC via Uniswap V3", pnlPercent: 2.3, txHash: null },
+      { id: "r1-2", timestamp: Date.now() - 5400000, adherent: true, action: "BUY ARB/USDC via Hyperliquid", pnlPercent: -0.8, txHash: null },
+      { id: "r1-3", timestamp: Date.now() - 14400000, adherent: false, action: "SELL DEGEN/USDC via Hyperliquid", pnlPercent: -6.1, txHash: null },
     ],
   },
   {
@@ -102,9 +102,9 @@ export const MOCK_KOLS: KOLAgent[] = [
       },
     },
     recentReceipts: [
-      { id: "r2-1", timestamp: Date.now() - 900000, adherent: true, action: "LONG ETH via Hyperliquid", pnlPercent: 4.7, txHash: "0xd1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0" },
-      { id: "r2-2", timestamp: Date.now() - 3600000, adherent: false, action: "LONG SOL via Hyperliquid", pnlPercent: -3.2, txHash: "0xe2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1" },
-      { id: "r2-3", timestamp: Date.now() - 10800000, adherent: true, action: "SHORT BTC via Hyperliquid", pnlPercent: 1.1, txHash: "0xf3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2" },
+      { id: "r2-1", timestamp: Date.now() - 900000, adherent: true, action: "LONG ETH via Hyperliquid", pnlPercent: 4.7, txHash: null },
+      { id: "r2-2", timestamp: Date.now() - 3600000, adherent: false, action: "LONG SOL via Hyperliquid", pnlPercent: -3.2, txHash: null },
+      { id: "r2-3", timestamp: Date.now() - 10800000, adherent: true, action: "SHORT BTC via Hyperliquid", pnlPercent: 1.1, txHash: null },
     ],
   },
   {
@@ -145,9 +145,9 @@ export const MOCK_KOLS: KOLAgent[] = [
       },
     },
     recentReceipts: [
-      { id: "r3-1", timestamp: Date.now() - 600000, adherent: true, action: "BUY ONDO/USDC via Uniswap V3", pnlPercent: 1.8, txHash: "0xa4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3" },
-      { id: "r3-2", timestamp: Date.now() - 2400000, adherent: true, action: "BUY PENDLE/USDC via Raydium", pnlPercent: 3.4, txHash: "0xb5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4" },
-      { id: "r3-3", timestamp: Date.now() - 7200000, adherent: true, action: "SELL AAVE/USDC via Uniswap V3", pnlPercent: 0.6, txHash: "0xc6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5" },
+      { id: "r3-1", timestamp: Date.now() - 600000, adherent: true, action: "BUY ONDO/USDC via Uniswap V3", pnlPercent: 1.8, txHash: null },
+      { id: "r3-2", timestamp: Date.now() - 2400000, adherent: true, action: "BUY PENDLE/USDC via Raydium", pnlPercent: 3.4, txHash: null },
+      { id: "r3-3", timestamp: Date.now() - 7200000, adherent: true, action: "SELL AAVE/USDC via Uniswap V3", pnlPercent: 0.6, txHash: null },
     ],
   },
 ];

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMembers } from "@/lib/circle-store";
+import { getAgent } from "@/lib/agent-store";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,12 @@ export async function POST(req: NextRequest) {
     }
 
     members.delete(followerWallet);
+
+    // Update adopter count in agent store
+    const agent = getAgent(agentId);
+    if (agent) {
+      agent.identity.activeAdopters = members.size;
+    }
 
     return NextResponse.json({
       success: true,

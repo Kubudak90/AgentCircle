@@ -2,6 +2,7 @@
 // In production: read from contract via viem publicClient
 
 import { MOCK_KOLS, type KOLAgent } from "@/lib/mock-data";
+import type { PolicyBundle } from "@/types/schema";
 
 const agents = new Map<string, KOLAgent>(MOCK_KOLS.map((k) => [k.nft.tokenId, k]));
 let nextId = MOCK_KOLS.length + 1;
@@ -14,12 +15,18 @@ export function getAllAgents(): KOLAgent[] {
   return Array.from(agents.values());
 }
 
+export function reindexAgent(oldId: string, newId: string, agent: KOLAgent) {
+  agents.delete(oldId);
+  agents.set(newId, agent);
+}
+
 export function registerAgent(data: {
   name: string;
   operatorWallet: string;
   policyBundleCID?: string;
   teePublicKey?: string;
   description?: string;
+  policyBundle?: PolicyBundle;
 }): { agentId: string; agent: KOLAgent } {
   const agentId = String(nextId++);
   const agent: KOLAgent = {
@@ -38,7 +45,7 @@ export function registerAgent(data: {
       activeAdopters: 0,
       latestReceiptCID: null,
     },
-    policy: {
+    policy: data.policyBundle || {
       version: "1.0",
       sourceGraph: { trackedWalletClusters: [], monitoredVenues: [], eventTypes: [] },
       candidateFilters: { minTokenAgeHours: 0, minLiquidityUSD: 0, maxFDV: null, blacklistedSectors: [], requireContractSafetyScore: 0 },

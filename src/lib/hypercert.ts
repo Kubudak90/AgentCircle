@@ -49,6 +49,9 @@ export interface HypercertResult {
   chain: string;
   explorerUrl: string;
   metadataCID: string;
+  claimId?: string;
+  claimUri?: string;
+  totalUnits?: string;
 }
 
 /**
@@ -76,7 +79,34 @@ export async function mintPolicyHypercert(
     transport: http(rpcUrl),
   });
 
-  // Step 1: Format metadata and upload to IPFS via Hypercerts API
+  // Step 1: Generate SVG image for the hypercert
+  function escapeXml(s: string): string {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0c1605"/><stop offset="100%" stop-color="#18230f"/></linearGradient></defs>
+    <rect width="600" height="400" fill="url(#g)"/>
+    <rect x="16" y="16" width="568" height="368" rx="12" fill="none" stroke="#00FF9C" stroke-width="1" opacity="0.25"/>
+    <text x="40" y="52" font-family="monospace" font-size="11" fill="#00FF9C" opacity="0.5" letter-spacing="3">AGENTCIRCLE × HYPERCERTS</text>
+    <line x1="40" y1="65" x2="560" y2="65" stroke="#00FF9C" stroke-width="0.5" opacity="0.15"/>
+    <text x="40" y="100" font-family="monospace" font-size="24" fill="#d9e7c8" font-weight="bold">${escapeXml(params.agentName)}</text>
+    <text x="40" y="125" font-family="monospace" font-size="12" fill="#97d5a3" opacity="0.6">PolicyBundle Impact Claim</text>
+    <text x="40" y="165" font-family="monospace" font-size="11" fill="#c0c9be" opacity="0.4">Agent ID: ${escapeXml(params.agentId)}</text>
+    <text x="40" y="185" font-family="monospace" font-size="11" fill="#c0c9be" opacity="0.4">Operator: ${escapeXml(params.operatorWallet.slice(0, 10))}...${escapeXml(params.operatorWallet.slice(-6))}</text>
+    <text x="40" y="205" font-family="monospace" font-size="11" fill="#8ba3ff" opacity="0.5">CID: ${escapeXml(params.policyBundleCID.slice(0, 35))}...</text>
+    <line x1="40" y1="225" x2="560" y2="225" stroke="#00FF9C" stroke-width="0.5" opacity="0.15"/>
+    <text x="40" y="255" font-family="monospace" font-size="10" fill="#00FF9C" opacity="0.4" letter-spacing="2">WORK SCOPE</text>
+    <text x="40" y="275" font-family="monospace" font-size="12" fill="#d9e7c8" opacity="0.7">${escapeXml(["policy-inheritance", "tee-verified", ...params.workScope].join(" · "))}</text>
+    <text x="40" y="310" font-family="monospace" font-size="10" fill="#FFBA20" opacity="0.4" letter-spacing="2">IMPACT SCOPE</text>
+    <text x="40" y="330" font-family="monospace" font-size="12" fill="#d9e7c8" opacity="0.7">agent-policy-sharing · crypto-operations</text>
+    <text x="40" y="370" font-family="monospace" font-size="9" fill="#c0c9be" opacity="0.2">Base Sepolia · ERC-8004 · TEE-Enforced · Filecoin Storage</text>
+    <circle cx="545" cy="45" r="4" fill="#00FF9C" opacity="0.6"/>
+  </svg>`;
+
+  const svgDataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+
+  // Step 2: Format metadata and upload to IPFS via Hypercerts API
   const { formatHypercertData, HypercertClient } = await import("@hypercerts-org/sdk");
 
   const now = Math.floor(Date.now() / 1000);
@@ -84,7 +114,7 @@ export async function mintPolicyHypercert(
   const { data: metadata, errors } = formatHypercertData({
     name: `${params.agentName} — AgentCircle PolicyBundle`,
     description: `${params.description}\n\nPolicy CID: ${params.policyBundleCID}\nAgent ID: ${params.agentId}\nProtocol: AgentCircle (ERC-8004 + ERC-8183)`,
-    image: "",
+    image: svgDataUri,
     version: "1.0.0",
     impactScope: ["agent-policy-sharing", "crypto-operations"],
     excludedImpactScope: [],
@@ -137,10 +167,30 @@ export async function mintPolicyHypercert(
 
   const explorerUrl = `${baseSepolia.blockExplorers.default.url}/tx/${hash}`;
 
+  // Extract claimId from ClaimStored event
+  let claimId: string | undefined;
+  let claimUri: string | undefined;
+  let totalUnits: string | undefined;
+  try {
+    const { getClaimStoredDataFromTxHash } = await import("@hypercerts-org/sdk");
+    const claimResult = await getClaimStoredDataFromTxHash(publicClient as any, hash);
+    if (claimResult?.data) {
+      claimId = claimResult.data.claimId?.toString();
+      claimUri = claimResult.data.uri;
+      totalUnits = claimResult.data.totalUnits?.toString();
+    }
+  } catch (err) {
+    console.error("Failed to extract claimId:", err);
+    // Non-critical — mint succeeded, claimId is optional
+  }
+
   return {
     txHash: hash,
     chain: "Base Sepolia",
     explorerUrl,
     metadataCID,
+    claimId,
+    claimUri,
+    totalUnits,
   };
 }

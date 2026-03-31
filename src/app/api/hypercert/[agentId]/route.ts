@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// In-memory store for minted hypercerts (production: query The Graph subgraph)
-const hypercerts = new Map<string, { txHash: string; chain: string; explorerUrl: string; mintedAt: number }>();
+export interface HypercertRecord {
+  txHash: string;
+  chain: string;
+  explorerUrl: string;
+  mintedAt: number;
+  claimId?: string;
+  claimUri?: string;
+  metadataCID?: string;
+  totalUnits?: string;
+}
 
-export function recordHypercert(agentId: string, data: { txHash: string; chain: string; explorerUrl: string }) {
+// In-memory store for minted hypercerts (production: query The Graph subgraph)
+const hypercerts = new Map<string, HypercertRecord>();
+
+export function recordHypercert(agentId: string, data: Omit<HypercertRecord, "mintedAt">) {
   hypercerts.set(agentId, { ...data, mintedAt: Date.now() });
+}
+
+export function getHypercert(agentId: string): HypercertRecord | undefined {
+  return hypercerts.get(agentId);
 }
 
 export async function GET(

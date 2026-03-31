@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mintPolicyHypercert } from "@/lib/hypercert";
+import { recordHypercert } from "@/app/api/hypercert/[agentId]/route";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,6 +18,17 @@ export async function POST(req: NextRequest) {
       policyBundleCID: policyBundleCID || "ipfs://pending",
       description: description || `PolicyBundle for ${agentName}`,
       workScope: workScope || [],
+    });
+
+    // Record with all fields including claimId
+    recordHypercert(agentId, {
+      txHash: result.txHash,
+      chain: result.chain,
+      explorerUrl: result.explorerUrl,
+      claimId: result.claimId,
+      claimUri: result.claimUri,
+      metadataCID: result.metadataCID,
+      totalUnits: result.totalUnits,
     });
 
     return NextResponse.json(result);

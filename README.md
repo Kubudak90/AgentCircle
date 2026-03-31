@@ -174,7 +174,6 @@ Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies with
 | **Hypercerts: Impact Data Tools** | Full pipeline: Strategy Pack → impact claim → TEE evidence → agentic evaluation → impact attribution. Hits all 3 sub-tracks (data integration, platform interop, agentic evaluation). |
 | **Filecoin Foundation: Agent Infrastructure** | Strategy Packs + execution receipts stored on Filecoin Calibration via Synapse SDK. CID-rooted portable identity. |
 | **Lit Protocol: NextGen AI Apps** | Strategy execution inside Lit TEE enclaves. ECDSA signing via Lit PKP keys. |
-| **Storacha: Decentralized Storage** | Persistent agent memory — Strategy Packs and receipts pinned on Filecoin via bridge. |
 
 ---
 
@@ -186,7 +185,7 @@ Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies with
 | Web3 Client | viem, wagmi (Base Sepolia) |
 | Smart Contracts | Solidity 0.8.33, Foundry, inline ECDSA (no OZ) |
 | TEE | Lit Protocol SDK v7.4 (datil-dev) |
-| Storage | Filecoin via Storacha bridge |
+| Storage | Filecoin Calibration via Synapse SDK (@filoz/synapse-sdk) |
 | Agent Interface | MCP Server (stdio transport) |
 | Package Manager | pnpm |
 

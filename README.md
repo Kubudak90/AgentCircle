@@ -1,9 +1,9 @@
 # AgentCircle
 
-> **The trust and payment layer for AI agent policy sharing.**
+> **A private strategy marketplace + measurable impact ledger for AI agents.**
 > Built for **PL_Genesis: Frontiers of Collaboration Hackathon** (March 2026).
 
-Inherit strategies from trusted agents. Your AI agent inherits operational policies — source graphs, candidate filters, and risk guardrails — from verified operators. TEE-enforced. ECDSA-signed. On-chain receipts on Filecoin + Base.
+Expert agents extract successful runs from daily operations and publish them as **Strategy Packs** — encrypted, TEE-verified operational policies that subscriber agents can inherit, execute, and evaluate. Impact flows back to creators via hypercerts.
 
 *You're not copying trades. You're inheriting the decision framework that produces them.*
 
@@ -11,29 +11,38 @@ Inherit strategies from trusted agents. Your AI agent inherits operational polic
 
 ## The Problem
 
-AI agents are everywhere — trading, farming, sniping, managing portfolios. But the best operators keep their edge locked behind private setups nobody can access or verify.
+AI agents are everywhere — trading, farming, routing, managing portfolios. But the best operators keep their edge locked behind private setups nobody can access or verify.
 
 - **No way to share operational knowledge without destroying it.** Open-source your config → alpha gets crowded and dies. Keep it private → nobody benefits.
 - **No way to verify that a config actually works.** Agent leaderboards rely on self-reported PnL and fakeable star reviews. Zero cryptographic proof of performance.
 - **No agent-native payment for expertise.** Paid Telegram groups share human-readable text. No way for agents to programmatically inherit, pay for, and enforce operational policies from other agents.
 
+Unlike human subscribers who need weeks to evaluate a paid newsletter, **agents can immediately try a strategy, evaluate the result, and switch** — enabling high-frequency switching between circles of influence. This makes micropayment models (ERC-8183 escrow) a natural fit.
+
 ---
 
 ## The Solution
 
-AgentCircle is a **private policy inheritance protocol**. Operators publish structured configs — not trades, not prompts — but the upstream decision framework: what to observe, what to filter, what to prohibit. Followers pay to join a gated circle and their agents inherit those policies automatically.
+AgentCircle is a **private strategy marketplace + measurable impact ledger**. Expert operators publish Strategy Packs — not individual trades, but the upstream decision framework: what to observe, what to filter, what to prohibit. Subscriber agents inherit these packs, execute inside a TEE, and produce cryptographic evidence of outcomes.
 
-**You're not copying trades. You're inheriting the decision framework that produces them.**
+**The full loop:**
 
-### What Gets Shared (PolicyBundle)
+1. **Expert agent** extracts successful runs → generates a **Strategy Pack** (PolicyBundle) containing: tracked data sources, routing policies, constraints, evaluation metrics
+2. **Pack encrypted via Lit Protocol** for a subscriber circle → stored on **Filecoin** as an encrypted artifact
+3. **Subscriber agents** with proper permissions decrypt and execute against the same objective inside TEE
+4. **Execution evidence** stored on Filecoin → if evaluation is positive, evidence appended to **Hypercerts**, returning reputation and rewards to publisher + evaluator
+
+**This is not an "agent marketplace." It's a private strategy marketplace where impact is measurable, attributable, and fundable.**
+
+### What's in a Strategy Pack (PolicyBundle)
 
 A structured, machine-readable JSON config that any agent framework can consume:
 
 | Module | What It Defines | Example |
 |--------|----------------|---------|
-| **Source Graph** | What the agent observes | Track "Smart Money 100" wallets on Hyperliquid |
-| **Candidate Filters** | What passes screening | Min $100K liquidity, no meme coins, safety score 75+ |
-| **Risk Guardrails** | What the agent is prohibited from doing | Max 3x leverage, 5% daily loss limit, kill switch on |
+| **Source Graph** | External agents, APIs, and platforms used | Track "Smart Money 100" wallets on Hyperliquid |
+| **Candidate Filters** | Routing policies and constraints | Min $100K liquidity, no meme coins, safety score 75+ |
+| **Risk Guardrails** | Evaluation metrics and hard limits | Max 3x leverage, 5% daily loss limit, kill switch on |
 
 ### What Does NOT Get Shared
 
@@ -41,6 +50,15 @@ A structured, machine-readable JSON config that any agent framework can consume:
 - Full prompts or chain-of-thought (share the decision rubric, not the text)
 - API keys, wallet keys, secrets (never productized)
 - Exact execution timing or routing (the execution edge stays in the TEE)
+
+### Hypercerts as Impact Ledger
+
+Each Strategy Pack becomes an **impact claim** (hypercert) that records:
+- **Who** created it (operator wallet, agent ID)
+- **What** task class it's effective for (work scope, venues, event types)
+- **When** it proved effective (benchmark period)
+
+When agent B copies agent A's strategy and it improves KPIs, hypercerts attribute that incremental impact to the pack owner, evaluator, and curator. Evidence (TEE-signed execution receipts on Filecoin) is appended to the claim over time, building a verifiable track record.
 
 ---
 
@@ -101,21 +119,27 @@ sequenceDiagram
 
 ---
 
-## Hypercerts Integration (Impact Attribution)
+## Hypercerts Integration (Measurable Impact Ledger)
 
-Each PolicyBundle is an impact claim. When a KOL registers a strategy, a hypercert is minted recording who created it, what it does, and over what benchmark period. Execution receipts become evidence of impact.
+Each Strategy Pack is an **impact claim** — a digital record of who contributed what, when, and with what evidence. Hypercerts turn AgentCircle from a strategy marketplace into a **fundable impact ledger**.
 
-```bash
-# Mint a hypercert for a PolicyBundle
-npx tsx scripts/test-hypercert.ts
+```
+Publisher registers Strategy Pack → hypercert minted (ERC-1155 on HypercertMinter)
+  ↓
+Subscriber inherits + TEE executes → execution receipt stored on Filecoin
+  ↓
+Receipt auto-posted as evidence → linked to the hypercert impact claim
+  ↓
+evaluate_impact scores the claim → reputation + rewards flow back to publisher
 ```
 
-| What | How |
-|------|-----|
-| **Impact claim** | Hypercert minted per PolicyBundle as ERC-1155 NFT on HypercertMinter |
-| **Evidence pipeline** | Every TEE execution auto-posts receipt as evidence linked to the hypercert |
-| **Agentic evaluation** | `evaluate_impact` MCP tool computes multi-signal score (adherence, rep, evidence density) |
-| **Visual proof** | ProofCard component shows live verification chain + evidence feed + impact score |
+| Layer | What It Does |
+|-------|-------------|
+| **Impact claim** | Hypercert minted per Strategy Pack — records creator, scope, benchmark period |
+| **Evidence pipeline** | Every TEE execution auto-posts receipt CID + ECDSA signature as evidence |
+| **Agentic evaluation** | `evaluate_impact` MCP tool computes multi-signal score (40% adherence + 30% rep + 20% evidence + 10% hypercert) |
+| **Impact attribution** | When agent B's KPIs improve using agent A's strategy, the hypercert attributes incremental impact to pack owner + evaluator |
+| **Visual proof** | ProofCard component shows live verification chain, evidence feed, adherence bar, impact score |
 | **SVG image** | Auto-generated branded SVG stored on IPFS with hypercert metadata |
 
 ---
@@ -142,14 +166,15 @@ Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies with
 
 ## Hackathon Tracks
 
-| Track | Integration |
-|-------|-------------|
-| **EF: Agents With Receipts — 8004** | ERC-8004 identity + reputation from TEE-signed execution receipts |
-| **EF: Let the Agent Cook** | Autonomous loop: human sets policies, agent inherits, executes, logs receipts |
-| **PL: AI & Robotics** | Agent-to-agent policy sharing with cryptographic proof |
-| **Lit Protocol: NextGen AI Apps** | Strategy execution inside Lit TEE nodes |
-| **Filecoin Foundation: Agent Infrastructure** | Execution receipts on Filecoin, CID-rooted portable identity |
-| **Hypercerts: Impact Data Tools** | Each PolicyBundle = impact claim; execution receipts = evidence; reputation = evaluation |
+| Track | How AgentCircle Fits |
+|-------|---------------------|
+| **EF: Agents With Receipts — 8004** | ERC-8004 identity + reputation from TEE-signed execution receipts. Multi-registry integration (identity + reputation + validation). |
+| **EF: Let the Agent Cook** | Autonomous loop: agent discovers strategies via MCP, inherits, executes, evaluates, switches. No human intervention after setup. |
+| **PL: AI & Robotics** | Agents with cryptographic proof of reasoning. Agent-to-agent payment rails via ERC-8183 escrow. |
+| **Hypercerts: Impact Data Tools** | Full pipeline: Strategy Pack → impact claim → TEE evidence → agentic evaluation → impact attribution. Hits all 3 sub-tracks (data integration, platform interop, agentic evaluation). |
+| **Filecoin Foundation: Agent Infrastructure** | Strategy Packs + execution receipts stored on Filecoin Calibration via Synapse SDK. CID-rooted portable identity. |
+| **Lit Protocol: NextGen AI Apps** | Strategy execution inside Lit TEE enclaves. ECDSA signing via Lit PKP keys. |
+| **Storacha: Decentralized Storage** | Persistent agent memory — Strategy Packs and receipts pinned on Filecoin via bridge. |
 
 ---
 

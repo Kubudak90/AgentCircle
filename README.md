@@ -112,10 +112,11 @@ npx tsx scripts/test-hypercert.ts
 
 | What | How |
 |------|-----|
-| **Impact claim** | Hypercert minted per PolicyBundle (creator, scope, timeframe) |
-| **Evidence** | TEE-signed execution receipts (Filecoin CIDs) |
-| **Evaluation** | ERC-8004 reputation score from verified outcomes |
-| **Attribution** | When adopters succeed, strategy creator gets attributed impact |
+| **Impact claim** | Hypercert minted per PolicyBundle as ERC-1155 NFT on HypercertMinter |
+| **Evidence pipeline** | Every TEE execution auto-posts receipt as evidence linked to the hypercert |
+| **Agentic evaluation** | `evaluate_impact` MCP tool computes multi-signal score (adherence, rep, evidence density) |
+| **Visual proof** | ProofCard component shows live verification chain + evidence feed + impact score |
+| **SVG image** | Auto-generated branded SVG stored on IPFS with hypercert metadata |
 
 ---
 
@@ -135,7 +136,7 @@ Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies with
 }
 ```
 
-**Tools:** `list_circles` (browse available agents) and `inherit_agent_policy` (execute TEE-verified inheritance).
+**Tools:** `list_circles` (browse available agents), `inherit_agent_policy` (execute TEE-verified inheritance), and `evaluate_impact` (compute multi-signal impact score from hypercert + evidence).
 
 ---
 
@@ -206,10 +207,12 @@ npx tsx scripts/register-agent.ts
 ### Run the App
 
 ```bash
-pnpm dev
-# Homepage:       http://localhost:3000
-# Policy Circles: http://localhost:3000/circles
-# Register Agent: http://localhost:3000/register
+pnpm dev:all  # Starts Next.js + Filecoin bridge together
+# Homepage:        http://localhost:3000
+# Policy Circles:  http://localhost:3000/circles
+# Register Agent:  http://localhost:3000/register
+# MCP Playground:  http://localhost:3000/mcp
+# Agent Detail:    http://localhost:3000/circles/[agentId]
 ```
 
 ### Test APIs
@@ -240,6 +243,25 @@ npx tsx scripts/test-submit.ts
 | GET | `/api/policies/[id]` | Read PolicyBundle |
 | POST | `/api/hypercert/mint` | Mint impact claim for a PolicyBundle |
 | GET | `/api/hypercert/[id]` | Read hypercert data for an agent |
+| GET | `/api/hypercert/[id]/evidence` | Read TEE evidence linked to hypercert |
+| POST | `/api/hypercert/[id]/evidence` | Post TEE receipt as evidence |
+| POST | `/api/upload/policy` | Upload PolicyBundle to Filecoin |
+| GET | `/api/agents` | List all agents |
+| POST | `/api/mcp` | HTTP proxy for MCP tools |
+| GET | `/api/tee` | Get TEE public key for registration |
+| GET | `/api/verify` | Verify Filecoin CID retrieval |
+
+---
+
+## Frontend Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Homepage | `/` | Agent discovery, bento grid, live proofs, MCP demo terminal |
+| Policy Circles | `/circles` | All agents with TEE receipts, inherit buttons |
+| Agent Detail | `/circles/[id]` | Full PolicyBundle, receipts, ProofCard, circle members |
+| Register Agent | `/register` | PolicyBundle builder form → Filecoin upload → on-chain registration |
+| MCP Playground | `/mcp` | Interactive terminal for MCP tools (list, inherit, evaluate) |
 
 ---
 

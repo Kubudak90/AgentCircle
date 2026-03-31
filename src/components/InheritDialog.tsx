@@ -157,7 +157,13 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         log("> Escrow: Wallet not connected, skipping on-chain lock.", "yellow");
       }
     } catch (escrowErr: any) {
-      log(`> Escrow lock skipped: ${escrowErr?.shortMessage || "wallet rejected"}`, "yellow");
+      const reason = escrowErr?.shortMessage || escrowErr?.message || "wallet rejected";
+      if (reason.includes("rejected") || reason.includes("denied")) {
+        log(`> Escrow skipped: User rejected transaction.`, "yellow");
+        log(`> Continuing in OFF-CHAIN mode — receipt will be generated but not submitted on-chain.`, "yellow");
+      } else {
+        log(`> Escrow lock failed: ${reason}`, "red");
+      }
     }
     await delay(400);
 
@@ -271,6 +277,24 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         log("> Upload failed, using deterministic CID.", "yellow");
       }
 
+      // Post evidence to hypercert
+      try {
+        await fetch(`/api/hypercert/${kol.identity.agentId}/evidence`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            receiptCID,
+            teeSignature: receipt.teeSignature,
+            adherenceVerified: receipt.policyAdherenceVerified,
+            followerWallet: wallet,
+            metrics: receipt.metrics,
+          }),
+        });
+        log("> Evidence linked to hypercert.", "green");
+      } catch {
+        // Non-blocking
+      }
+
       await delay(500);
 
       log("> Submitting to ERC-8004 Registry on-chain...", "cyan");
@@ -282,6 +306,18 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         if (!receipt.teeSignature?.startsWith("0x")) {
           log("> Invalid TEE signature format.", "red");
         }
+        // Join circle as adopter (off-chain path)
+        try {
+          await fetch("/api/circles/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ agentId: kol.identity.agentId, followerWallet: wallet }),
+          });
+          log("> Joined circle as policy adopter.", "green");
+        } catch {
+          // Non-critical
+        }
+
         log("> Done (off-chain only).", "green");
         toast.success("Receipt generated (off-chain)", { description: receiptCID });
         return;
@@ -316,6 +352,19 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
         setResultCID(receiptCID);
         log(`> Tx: ${hash}`, "cyan");
         log("> Receipt logged to ERC-8004 Registry.", "green");
+
+        // Join circle as adopter
+        try {
+          await fetch("/api/circles/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ agentId: kol.identity.agentId, followerWallet: wallet }),
+          });
+          log("> Joined circle as policy adopter.", "green");
+        } catch {
+          // Non-critical — don't block the flow
+        }
+
         log("> Done.", "green");
 
         toast.success("Receipt logged to ERC-8004", {
@@ -342,12 +391,18 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
           log("> [ERROR] Contract call reverted (gas estimation failed).", "red");
           log(">   TEE signature likely doesn't match on-chain data.", "yellow");
           log(">   Verify: contract address, chain ID, TEE key alignment.", "yellow");
+        } else if (raw.includes("rejected") || raw.includes("denied")) {
+          log("> On-chain submission cancelled by user.", "yellow");
+          log("> Receipt is cryptographically valid — ECDSA signature + Filecoin CID preserved.", "yellow");
+          log("> You can submit this receipt on-chain later using the TEE signature.", "yellow");
         } else {
           log(`> [ERROR] ${raw}`, "red");
         }
-        log("> Receipt preserved off-chain with CID + signature.", "yellow");
+        if (!raw.includes("rejected") && !raw.includes("denied")) {
+          log("> Receipt preserved off-chain with CID + signature.", "yellow");
+        }
         log("> Done (off-chain only).", "green");
-        toast.error("On-chain tx failed", { description: raw.slice(0, 80) });
+        toast.error("On-chain tx skipped", { description: raw.includes("rejected") ? "User cancelled — receipt saved off-chain" : raw.slice(0, 80) });
       }
     } catch (err: any) {
       log(`> ERROR: ${err.message}`, "red");

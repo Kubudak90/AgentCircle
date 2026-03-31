@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MOCK_KOLS, type KOLAgent } from "@/lib/mock-data";
 import InheritDialog from "@/components/InheritDialog";
 import ConnectButton from "@/components/ConnectButton";
+import MCPSection from "@/components/MCPSection";
 import Link from "next/link";
+import { REGISTRY_CHAIN } from "@/lib/contract";
 
 export default function CirclesPage() {
   const [selected, setSelected] = useState<KOLAgent | null>(null);
+  const [agents, setAgents] = useState<KOLAgent[]>(MOCK_KOLS);
+
+  useEffect(() => {
+    fetch("/api/agents")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.agents?.length > 0) setAgents(data.agents);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0c1605] text-[#d9e7c8] selection:bg-[#97d5a3] selection:text-[#003919]">
@@ -19,7 +31,8 @@ export default function CirclesPage() {
             <div className="hidden md:flex gap-6 text-xs font-medium uppercase tracking-widest">
               <Link href="/" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">Discover</Link>
               <span className="text-[#97d5a3] border-b border-[#255f38] pb-0.5">Policy Circles</span>
-              <span className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all cursor-pointer">Live Proofs</span>
+              <Link href="/mcp" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">MCP</Link>
+              <Link href="/#live-proofs" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">Live Proofs</Link>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -47,7 +60,7 @@ export default function CirclesPage() {
             </h1>
             <div className="flex flex-wrap items-center gap-6">
               <span className="text-[#c0c9be] font-medium flex items-center gap-2">
-                {MOCK_KOLS.length} agents with TEE-verified execution
+                {agents.length} agents with TEE-verified execution
               </span>
               <span className="flex items-center gap-2 px-3 py-1 bg-[#00613d]/20 text-[#80d8a7] rounded-full text-xs font-bold uppercase tracking-wider border border-[#80d8a7]/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#80d8a7] animate-pulse" />
@@ -71,7 +84,7 @@ export default function CirclesPage() {
             </div>
           </div>
 
-          {MOCK_KOLS.map((kol, i) => (
+          {agents.map((kol, i) => (
             <div key={kol.nft.tokenId} className="bg-[#2d3822]/60 backdrop-blur-xl p-8 border-l-4 border-[#97d5a3] shadow-2xl relative overflow-hidden group hover:bg-[#2d3822]/80 transition-all">
               {/* Background Number */}
               <div className="absolute top-0 right-0 text-[10rem] font-bold text-[#97d5a3]/[0.03] leading-none select-none pointer-events-none -top-12 -right-4">
@@ -83,7 +96,7 @@ export default function CirclesPage() {
                   {/* Title */}
                   <div>
                     <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-2xl font-bold">{kol.nft.name}</h3>
+                      <Link href={`/circles/${kol.nft.tokenId}`} className="text-2xl font-bold hover:text-[#97d5a3] transition-colors">{kol.nft.name}</Link>
                       <span className="text-[10px] bg-[#2d3822] px-2 py-0.5 text-[#97d5a3] border border-[#97d5a3]/20 uppercase tracking-tighter">TEE Verified</span>
                     </div>
                     <p className="text-[#c0c9be]/60 text-sm max-w-lg leading-relaxed">{kol.nft.description}</p>
@@ -107,7 +120,7 @@ export default function CirclesPage() {
                     <div className="text-[10px] text-[#8a9389] uppercase tracking-widest mb-3">Recent TEE Receipts</div>
                     <div className="space-y-1.5">
                       {kol.recentReceipts.map((r) => (
-                        <div key={r.id} className="flex items-center justify-between bg-[#071102] p-3 cursor-pointer hover:bg-[#141f0b] transition-colors">
+                        <div key={r.id} className="flex items-center justify-between bg-[#071102] p-3 hover:bg-[#141f0b] transition-colors">
                           <div className="flex items-center gap-3">
                             <span className={`w-2 h-2 rounded-full ${r.adherent ? "bg-[#97d5a3] shadow-[0_0_8px_#97d5a3]" : "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.4)]"}`} />
                             <span className="font-mono text-[10px] text-[#c0c9be]/40">{r.txHash?.slice(0, 8)}...{r.txHash?.slice(-4)}</span>
@@ -115,7 +128,13 @@ export default function CirclesPage() {
                               {r.adherent ? "PASS" : "FAIL"}
                             </span>
                           </div>
-                          <span className="text-[9px] font-bold text-[#97d5a3]/60 uppercase tracking-tighter">View on Filecoin</span>
+                          {r.txHash && REGISTRY_CHAIN.blockExplorers?.default.url ? (
+                            <a href={`${REGISTRY_CHAIN.blockExplorers.default.url}/tx/${r.txHash}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-bold text-[#97d5a3]/60 uppercase tracking-tighter hover:text-[#97d5a3] transition-colors">
+                              View on Basescan
+                            </a>
+                          ) : (
+                            <span className="text-[9px] font-bold text-[#97d5a3]/60 uppercase tracking-tighter">Pending</span>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -148,29 +167,7 @@ export default function CirclesPage() {
         </section>
 
         {/* MCP Integration */}
-        <section className="bg-[#141f0b] p-12 border border-[#414941]/10 relative overflow-hidden mb-16">
-          <div className="absolute top-0 right-0 p-8 opacity-5 text-[120px] leading-none select-none pointer-events-none font-bold">MCP</div>
-          <div className="max-w-2xl relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 rounded-full bg-[#97d5a3] shadow-[0_0_8px_#97d5a3]" />
-              <h2 className="text-2xl font-bold uppercase tracking-tight">Agent Integration (MCP)</h2>
-            </div>
-            <p className="text-[#c0c9be]/60 mb-8 leading-relaxed">
-              Connect directly to your local operator terminal via Model Context Protocol. Your agent monitors proofs and inherits policies in real-time — no browser needed.
-            </p>
-            <div className="bg-[#071102] border border-[#414941]/20 p-6 relative">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-400/40" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#97d5a3]/40" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#80d8a7]/40" />
-                </div>
-                <div className="text-[10px] font-mono text-[#8a9389] uppercase tracking-widest">bash — node</div>
-              </div>
-              <code className="text-[#97d5a3] font-mono text-sm">npx tsx scripts/mcp-server.ts</code>
-            </div>
-          </div>
-        </section>
+        <MCPSection />
       </main>
 
       {/* Footer */}

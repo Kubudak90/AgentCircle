@@ -90,13 +90,32 @@ sequenceDiagram
 
 ---
 
-## Deployed Contract
+## Deployed Contracts
 
-| Network | Address | Explorer |
-|---------|---------|----------|
-| Base Sepolia | `0x899bd273ad6c1e1191df43a3e8756e773517a20b` | [View on Basescan](https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b) |
+| Contract | Network | Address | Explorer |
+|----------|---------|---------|----------|
+| AgentPolicyRegistry | Base Sepolia | `0x899bd273ad6c1e1191df43a3e8756e773517a20b` | [View](https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b) |
+| HypercertMinter | Base Sepolia | `0xC2d179166bc9dbB00A03686a5b17eCe2224c2704` | [View](https://sepolia.basescan.org/address/0xC2d179166bc9dbB00A03686a5b17eCe2224c2704) |
 
 **23/23 Foundry tests passing** — ECDSA verification, escrow lock/release/refund, risk gating, replay protection, adopter tracking.
+
+---
+
+## Hypercerts Integration (Impact Attribution)
+
+Each PolicyBundle is an impact claim. When a KOL registers a strategy, a hypercert is minted recording who created it, what it does, and over what benchmark period. Execution receipts become evidence of impact.
+
+```bash
+# Mint a hypercert for a PolicyBundle
+npx tsx scripts/test-hypercert.ts
+```
+
+| What | How |
+|------|-----|
+| **Impact claim** | Hypercert minted per PolicyBundle (creator, scope, timeframe) |
+| **Evidence** | TEE-signed execution receipts (Filecoin CIDs) |
+| **Evaluation** | ERC-8004 reputation score from verified outcomes |
+| **Attribution** | When adopters succeed, strategy creator gets attributed impact |
 
 ---
 
@@ -129,6 +148,7 @@ Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies with
 | **PL: AI & Robotics** | Agent-to-agent policy sharing with cryptographic proof |
 | **Lit Protocol: NextGen AI Apps** | Strategy execution inside Lit TEE nodes |
 | **Filecoin Foundation: Agent Infrastructure** | Execution receipts on Filecoin, CID-rooted portable identity |
+| **Hypercerts: Impact Data Tools** | Each PolicyBundle = impact claim; execution receipts = evidence; reputation = evaluation |
 
 ---
 
@@ -218,6 +238,8 @@ npx tsx scripts/test-submit.ts
 | POST | `/api/circles/leave` | Leave a circle |
 | GET | `/api/circles/[id]` | List circle members |
 | GET | `/api/policies/[id]` | Read PolicyBundle |
+| POST | `/api/hypercert/mint` | Mint impact claim for a PolicyBundle |
+| GET | `/api/hypercert/[id]` | Read hypercert data for an agent |
 
 ---
 

@@ -161,7 +161,7 @@ export default function AgentDetailPage({ params }: { params: Promise<{ agentId:
               <div className="flex gap-6 justify-end text-center">
                 <div>
                   <div className="text-xl font-bold font-mono">{agent.identity.activeAdopters}</div>
-                  <div className="text-[10px] text-[#8a9389] uppercase tracking-widest">Adopters</div>
+                  <div className="text-[10px] text-[#8a9389] uppercase tracking-widest">Subscribers</div>
                 </div>
                 <div>
                   <div className="text-xl font-bold font-mono text-[#97d5a3]">{agent.recentReceipts.length}</div>

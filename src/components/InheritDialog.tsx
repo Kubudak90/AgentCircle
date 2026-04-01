@@ -323,7 +323,7 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ agentId: kol.identity.agentId, followerWallet: wallet }),
           });
-          log("> Joined circle as policy adopter.", "green");
+          log("> Joined circle as subscriber.", "green");
         } catch {
           // Non-critical
         }
@@ -370,7 +370,7 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ agentId: kol.identity.agentId, followerWallet: wallet }),
           });
-          log("> Joined circle as policy adopter.", "green");
+          log("> Joined circle as subscriber.", "green");
         } catch {
           // Non-critical — don't block the flow
         }

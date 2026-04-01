@@ -146,7 +146,7 @@ export default function CirclesPage() {
                   <div className="text-right">
                     <div className="text-4xl font-bold text-[#97d5a3]">{kol.identity.reputationScore}</div>
                     <div className="text-[10px] text-[#8a9389] uppercase tracking-widest">Rep Score</div>
-                    <div className="text-sm text-[#c0c9be]/40 mt-1 font-mono">{kol.identity.activeAdopters} adopters</div>
+                    <div className="text-sm text-[#c0c9be]/40 mt-1 font-mono">{kol.identity.activeAdopters} subscribers</div>
                     {/* Sparkline */}
                     <div className="flex items-end justify-end gap-1 h-8 mt-4">
                       {[0.4, 0.6, 0.5, 0.8, 0.7, 0.9, 1.0].map((h, j) => (

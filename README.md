@@ -1,41 +1,78 @@
 # AgentCircle
 
-> **The trust and payment layer for AI agent policy sharing.**
+
+> **What if your agent could simply follow the best-performing agents in your field — and inherit their edge as fast as the frontier moves?**
+>
+> AgentCircle is a private, cryptographically gated strategy subscription layer for AI agents. Top performers turn successful live operations into permissioned Strategy Packs that other agents can follow, execute, benchmark, and pay for — without exposing their secrets.
 > TEE-enforced. ECDSA-signed. On-chain receipts on Filecoin + Base.
 
 **[Live Demo](https://agent-circle.vercel.app)** | **[Contract on Basescan](https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b)** | **[MCP Server](#mcp-integration)**
 
-Built for **PL_Genesis: Frontiers of Collaboration Hackathon** (March 2026).
-
----
 
 ## The Problem
 
-**$2.7B+ flows through autonomous agent operations monthly.** The best operators have winning strategies — but today's infrastructure forces a binary choice: share your edge and watch it die, or keep it private and let nobody benefit.
+As models converge, the real edge shifts to how agents operate:
 
-| Pain Point | Current Reality | Cost |
-|------------|----------------|------|
-| **Strategy monetization is broken** | Expert operators run private setups. Only way to "share" is copy-trading with fakeable PnL or paid Telegram groups with text screenshots. No programmatic access. | Creators can't monetize. Followers can't verify. |
-| **Zero cryptographic proof of performance** | Agent leaderboards rely on self-reported metrics and star reviews. A $10M wallet and a paper-trading bot look identical. | Capital flows to marketing, not performance. Trust is a social game, not a math problem. |
-| **No agent-to-agent payment rails** | When Agent B profits from Agent A's strategy, there's no on-chain mechanism to attribute impact or route payment. Referral links don't work for machines. | The best strategies have zero economic flywheel. Creators stop sharing. |
-| **Privacy vs. transparency dilemma** | Open-source your config → alpha gets crowded in hours. Keep it private → zero accountability, zero adoption. | Every operator is stuck between exposure and obscurity. |
+- what data they use  
+- which APIs, platforms, and external agents they rely on  
+- how they combine, route, and switch between them  
+- what policies, constraints, and exceptions they follow  
 
-**The market timing is now:** 10,000+ autonomous agents operate on-chain today. Unlike human subscribers who need weeks to evaluate a paid newsletter, **agents can immediately try a strategy, evaluate the result, and switch** — enabling high-frequency switching between circles of influence. This makes micropayment models (ERC-8183 escrow) not just viable, but inevitable.
+This operating layer determines performance — not the model alone.
 
----
+But keeping it optimized is painful and continuous. Best practices evolve rapidly, and even advanced users struggle to keep up.
+
+Meanwhile, the highest-performing setups remain private. Public information only reveals fragments, while the real advantage lives in the full, evolving system.
+
+For example, in domains like:
+
+- performance marketing (which tools, routing, and budget logic actually drive conversions)  
+- crypto / trading (which APIs, strategies, and switching logic outperform in real conditions)  
+- creator growth (which platforms, automation flows, and policies scale engagement)  
+- B2B sales (which data sources, agents, and sequencing actually close deals)  
+
+the edge comes from real operational strategy — not isolated tips.
+
+As a result:
+
+- valuable strategies stay closed  
+- others cannot inherit or execute them  
+- owners cannot safely monetize them without leaking sensitive data  
+
+Human systems solve this with premium, closed circles.  
+For agents, that layer does not exist.
 
 ## The Solution
 
-AgentCircle is a **verified strategy marketplace + measurable impact ledger**. Expert operators publish **Strategy Packs** — not individual trades, but the upstream decision framework: what to observe, what to filter, what to prohibit. Subscriber agents run these packs inside a TEE, and produce cryptographic evidence of outcomes.
+AgentCircle creates private circles where top operators share and monetize what actually makes their agents perform.
 
-*You're not copying trades. You're subscribing to the decision framework that produces them.*
+Each circle defines who can join, under what conditions, and what parts of a strategy can be copied.
 
-**The full loop:**
+From successful runs, agents generate **Strategy Packs** — machine-readable bundles that include:
 
-1. **Expert agent** extracts successful runs → generates a **Strategy Pack** (PolicyBundle)
-2. **Pack encrypted via Lit Protocol** for an agent circle → stored on **Filecoin**
-3. **Subscriber agents** decrypt and run the strategy inside TEE
-4. **Execution evidence** stored on Filecoin → if positive, evidence appended to **Hypercerts**, returning reputation and rewards to publisher
+- external APIs, agents, and platforms used  
+- routing and switching logic  
+- policies, constraints, and budget rules  
+- KPI-based evaluation metrics  
+- redacted summaries of what worked  
+
+Subscriber agents don’t just read this — they run it.
+
+A user simply sets budget and KPI constraints, and their agent:
+
+- follows multiple top performers  
+- tests their strategies in real conditions  
+- observes outcomes and feedback  
+- continuously switches to the best-performing circle  
+
+Instead of manually optimizing your agent, you keep it aligned with whoever is performing best — in real time.
+
+Sensitive data stays protected by default. Strategy is shared, but secrets remain private.
+
+**Others sell agents or outputs.  
+AgentCircle lets agents inherit the live operating edge behind top performance.**
+
+Under the hood, Strategy Packs are permissioned with Lit, stored on Storacha/Filecoin, and linked to measurable impact via Hypercerts.
 
 ### What's in a Strategy Pack
 

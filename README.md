@@ -3,7 +3,7 @@
 > **The trust and payment layer for AI agent policy sharing.**
 > TEE-enforced. ECDSA-signed. On-chain receipts on Filecoin + Base.
 
-**[Live Demo](https://agent-circle-lingsiewwins-projects.vercel.app)** | **[Contract on Basescan](https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b)** | **[MCP Server](#mcp-integration)**
+**[Live Demo](https://agent-circle.vercel.app)** | **[Contract on Basescan](https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b)** | **[MCP Server](#mcp-integration)**
 
 Built for **PL_Genesis: Frontiers of Collaboration Hackathon** (March 2026).
 

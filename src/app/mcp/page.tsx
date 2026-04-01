@@ -73,7 +73,7 @@ export default function MCPPlaygroundPage() {
           for (const c of data.result) {
             addLines([
               { text: `[ID: ${c.id}] ${c.name}`, color: "green" },
-              { text: `  Rep: ${c.reputationScore} | Adopters: ${c.activeAdopters} | Venues: ${c.venues.join(", ")}`, color: "white" },
+              { text: `  Rep: ${c.reputationScore} | Subscribers: ${c.activeAdopters} | Venues: ${c.venues.join(", ")}`, color: "white" },
               { text: `  Risk: ${c.riskSummary.maxLeverage} leverage | ${c.riskSummary.dailyLossLimit} loss limit | Kill Switch: ${c.riskSummary.killSwitch}`, color: "yellow" },
             ]);
           }
@@ -163,7 +163,7 @@ export default function MCPPlaygroundPage() {
             { text: `Overall Impact Score: ${e.overallScore}/100`, color: e.overallScore >= 50 ? "green" : "yellow" },
             { text: `Reputation: ${e.reputationScore}/100 | Adherence: ${e.adherenceRate}%`, color: "white" },
             { text: `Executions: ${e.totalExecutions} (${e.passCount} pass, ${e.failCount} fail)`, color: "white" },
-            { text: `Adopters: ${e.activeAdopters} | Hypercert: ${e.hypercertMinted ? "MINTED" : "NOT MINTED"}`, color: e.hypercertMinted ? "green" : "yellow" },
+            { text: `Subscribers: ${e.activeAdopters} | Hypercert: ${e.hypercertMinted ? "MINTED" : "NOT MINTED"}`, color: e.hypercertMinted ? "green" : "yellow" },
           ]);
           if (e.claimId) {
             addLines([{ text: `Claim ID: ${e.claimId}`, color: "cyan" }]);
@@ -299,7 +299,7 @@ export default function MCPPlaygroundPage() {
           <div className="glass-panel rounded-xl p-5">
             <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#00FF9C] mb-3">How It Works</p>
             <div className="space-y-2 text-xs text-[#c0c9be]/40">
-              <p>1. Your agent calls <span className="text-[#00FF9C]">list_circles</span> to discover policies</p>
+              <p>1. Your agent calls <span className="text-[#00FF9C]">list_circles</span> to discover strategies</p>
               <p>2. Agent calls <span className="text-[#00FF9C]">inherit_agent_policy</span> with a KOL ID</p>
               <p>3. TEE executes + signs receipt with ECDSA</p>
               <p>4. Receipt goes on-chain to ERC-8004 Registry</p>

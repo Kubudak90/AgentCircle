@@ -72,6 +72,16 @@ function TypewriterLine({ line, onDone }: { line: LogLine; onDone: () => void })
   );
 }
 
+// ─── Elapsed Timer ───
+function ElapsedTimer() {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return <span className="font-mono text-[10px] text-[#10f5a0]/50">{seconds}s elapsed</span>;
+}
+
 // ─── TEE Pulse Scanline ───
 function TeePulse() {
   return (
@@ -507,6 +517,13 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
                   <span className="text-[#10f5a0]/50 animate-pulse text-lg">_</span>
                 )}
               </div>
+              {!isDone && logs.length > 0 && (
+                <div className="px-6 py-2 border-t border-white/[0.04] flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10f5a0] animate-pulse" />
+                  <span className="text-[10px] text-zinc-500">Processing — Filecoin uploads take 50-100s</span>
+                  <ElapsedTimer />
+                </div>
+              )}
             </div>
 
             {/* Result Panel */}

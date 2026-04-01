@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllAgents, getAgent } from "@/lib/agent-store";
 import { addEvidence, getEvidence } from "@/lib/evidence-store";
-import { getHypercert } from "@/app/api/hypercert/[agentId]/route";
 
 export async function POST(req: NextRequest) {
   try {
@@ -99,8 +98,32 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `Agent ${agentId} not found` }, { status: 404 });
       }
 
-      const hypercert = getHypercert(agentId);
-      const evidence = getEvidence(agentId);
+      // Fetch hypercert via HTTP to work across Vercel lambda instances
+      const origin = req.nextUrl.origin;
+      let hypercert: { txHash?: string; claimId?: string } | null = null;
+      try {
+        const hcRes = await fetch(`${origin}/api/hypercert/${agentId}`);
+        const hcData = await hcRes.json();
+        hypercert = hcData.hypercert || null;
+      } catch {
+        // Non-critical
+      }
+
+      // Fetch evidence via HTTP for same reason
+      let evidence: { receiptCID: string; adherenceVerified: boolean; timestamp: number; followerWallet: string }[] = [];
+      try {
+        const evRes = await fetch(`${origin}/api/hypercert/${agentId}/evidence`);
+        const evData = await evRes.json();
+        evidence = evData.evidence || [];
+      } catch {
+        // Non-critical — fall back to local store
+        evidence = getEvidence(agentId).map((e) => ({
+          receiptCID: e.receiptCID,
+          adherenceVerified: e.adherenceVerified,
+          timestamp: e.timestamp,
+          followerWallet: e.followerWallet,
+        }));
+      }
 
       const totalExecutions = evidence.length;
       const passCount = evidence.filter((e) => e.adherenceVerified).length;

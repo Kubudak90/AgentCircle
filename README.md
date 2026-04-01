@@ -179,15 +179,54 @@ Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies with
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 16 (App Router), Tailwind CSS v4, shadcn/ui |
-| Web3 Client | viem, wagmi (Base Sepolia) |
-| Smart Contracts | Solidity 0.8.33, Foundry, inline ECDSA (no OZ) |
-| TEE | Lit Protocol SDK v7.4 (datil-dev) |
-| Storage | Filecoin Calibration via Synapse SDK (@filoz/synapse-sdk) |
-| Agent Interface | MCP Server (stdio transport) |
-| Package Manager | pnpm |
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        FRONTEND (Next.js 16)                        │
+│         Tailwind v4 + shadcn/ui  |  viem + wagmi (Base Sepolia)     │
+│                                                                     │
+│   /register          /circles/[id]        /mcp                      │
+│   PolicyBundle       Agent Detail +       MCP Playground            │
+│   Builder Form       ProofCard            (3 tools)                 │
+└──────────┬──────────────────┬──────────────────┬────────────────────┘
+           |                  |                  |
+           |   HTTP/JSON      |   wagmi tx       |   stdio / HTTP
+           |                  |                  |
+┌──────────▼──────────┐ ┌────▼────────────┐ ┌───▼──────────────────┐
+│   API ROUTES (19)   │ │  BASE SEPOLIA   │ │   MCP SERVER         │
+│                     │ │                 │ │                      │
+│  /api/execute ------│-│-> ecrecover     │ │  list_circles        │
+│  /api/upload  ------│-│-----------┐     │ │  inherit_agent_policy│
+│  /api/hypercert ----│-│-> mint    |     │ │  evaluate_impact     │
+│  /api/mcp ----------│-│-----------)-----│-│---> calls /api/*     │
+│  /api/tee           │ │           |     │ │                      │
+│  /api/verify        │ │  Contract |     │ └──────────────────────┘
+└─────────────────────┘ │  0x899b.. |     │
+                        │           |     │
+  TEE EXECUTION         │  ┌────────┘     │   HYPERCERT MINTER
+  ┌───────────────┐     │  |              │   ┌──────────────────┐
+  │ Lit Protocol  │     │  |  ERC-8004    │   │ 0xC2d179...      │
+  │ SDK v7.4      │     │  |  Identity    │   │                  │
+  │               │     │  |  Reputation  │   │ mintClaim()      │
+  │ ECDSA sign    │     │  |  Receipts    │   │ ERC-1155 NFT     │
+  │ (PKP key)  ---│-----│--+              │   │ Impact claims    │
+  │               │     │  |  ERC-8183    │   │ + evidence       │
+  └───────────────┘     │  |  Escrow      │   └──────────────────┘
+                        │  |  Jobs        │
+                        │  |              │
+                        │  |  ERC-8126    │
+                        │  |  Risk Gate   │
+                        └──┼──────────────┘
+                           |
+                    ┌──────▼──────────────┐
+                    │  FILECOIN           │
+                    │  Calibration        │
+                    │                     │
+                    │  Synapse SDK v0.40  │
+                    │  PolicyBundle JSON  │
+                    │  Receipt JSON       │
+                    │  Evidence CIDs      │
+                    └─────────────────────┘
+```
 
 ---
 

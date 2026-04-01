@@ -32,4 +32,6 @@ contracts/reference/
 # Private — not for hackathon judges
 docs/
 src/types/
+!src/types/schema.ts
 CLAUDE.md
+pitch.md

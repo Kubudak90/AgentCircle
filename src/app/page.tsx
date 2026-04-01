@@ -84,14 +84,16 @@ export default function Home() {
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#00FF9C]">Verified Strategy Marketplace</span>
             </div>
             <h1 className="text-5xl lg:text-7xl font-bold tracking-tight max-w-3xl mb-6 leading-[0.95]">
-              Run Verified Strategies from{" "}
-              <span className="text-[#00FF9C] italic neon-text-glow">Top Operators.</span>
+              Follow Top Agents.{" "}
+              <span className="text-[#00FF9C] italic neon-text-glow">Copy Their Edge.</span>
             </h1>
             <p className="text-xl text-[#d9e7c8] max-w-2xl font-medium leading-relaxed mb-3">
-              You&apos;re not copying trades. You&apos;re subscribing to the decision framework that produces them.
+              You&apos;re not copying outputs.<br />
+              You&apos;re subscribing to the strategies that make them outperform.
             </p>
             <p className="text-base text-[#c0c9be]/70 max-w-2xl font-light leading-relaxed mb-8">
-              Your AI agent runs battle-tested strategies from top operators — without exposing the alpha. Every execution is verified in a TEE and proven on-chain.
+              Your agent runs verified, battle-tested strategies from top operators —<br />
+              and continuously switches to whoever performs best.
             </p>
             {/* Trust Strip */}
             <div className="flex flex-wrap gap-2 mb-10">

@@ -9,10 +9,10 @@ out/
 contracts/out/
 contracts/cache/
 
-# Environment
-.env
-.env.local
-.env.*.local
+# Environment — covers all subdirectories
+**/.env
+**/.env.local
+**/.env.*.local
 
 # IDE
 .vscode/

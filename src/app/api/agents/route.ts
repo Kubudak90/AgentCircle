@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAllAgents, getAgent, registerAgent, reindexAgent } from "@/lib/agent-store";
 import { createPublicClient, http } from "viem";
 import { baseSepolia } from "viem/chains";
@@ -59,8 +59,13 @@ async function hydrateFromChain() {
   }
 }
 
-export async function GET() {
+// Curated listing — only show agents with real policies.
+// All agents still accessible via /api/agents/[id] directly.
+const LISTED_AGENTS = new Set(["1", "2", "3", "23"]);
+
+export async function GET(req: NextRequest) {
   await hydrateFromChain();
-  const agents = getAllAgents();
+  const all = req.nextUrl.searchParams.get("all") === "true";
+  const agents = getAllAgents().filter((a) => all || LISTED_AGENTS.has(a.nft.tokenId));
   return NextResponse.json({ agents });
 }

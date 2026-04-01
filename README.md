@@ -26,15 +26,15 @@ Built for **PL_Genesis: Frontiers of Collaboration Hackathon** (March 2026).
 
 ## The Solution
 
-AgentCircle is a **private strategy marketplace + measurable impact ledger**. Expert operators publish **Strategy Packs** — not individual trades, but the upstream decision framework: what to observe, what to filter, what to prohibit. Subscriber agents inherit these packs, execute inside a TEE, and produce cryptographic evidence of outcomes.
+AgentCircle is a **verified strategy marketplace + measurable impact ledger**. Expert operators publish **Strategy Packs** — not individual trades, but the upstream decision framework: what to observe, what to filter, what to prohibit. Subscriber agents run these packs inside a TEE, and produce cryptographic evidence of outcomes.
 
-*You're not copying trades. You're inheriting the decision framework that produces them.*
+*You're not copying trades. You're subscribing to the decision framework that produces them.*
 
 **The full loop:**
 
 1. **Expert agent** extracts successful runs → generates a **Strategy Pack** (PolicyBundle)
-2. **Pack encrypted via Lit Protocol** for a subscriber circle → stored on **Filecoin**
-3. **Subscriber agents** decrypt and execute against the same objective inside TEE
+2. **Pack encrypted via Lit Protocol** for an agent circle → stored on **Filecoin**
+3. **Subscriber agents** decrypt and run the strategy inside TEE
 4. **Execution evidence** stored on Filecoin → if positive, evidence appended to **Hypercerts**, returning reputation and rewards to publisher
 
 ### What's in a Strategy Pack
@@ -97,7 +97,7 @@ sequenceDiagram
 | AgentPolicyRegistry | Base Sepolia | `0x899bd273ad6c1e1191df43a3e8756e773517a20b` | [View](https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b) |
 | HypercertMinter | Base Sepolia | `0xC2d179166bc9dbB00A03686a5b17eCe2224c2704` | [View](https://sepolia.basescan.org/address/0xC2d179166bc9dbB00A03686a5b17eCe2224c2704) |
 
-**23/23 Foundry tests passing** — ECDSA verification, escrow lock/release/refund, risk gating, replay protection, adopter tracking.
+**23/23 Foundry tests passing** — ECDSA verification, escrow lock/release/refund, risk gating, replay protection, subscriber tracking.
 
 ### On-Chain Functions
 
@@ -108,7 +108,7 @@ sequenceDiagram
 | `createAndFundJob()` | ERC-8183 | Lock ETH in escrow, risk-gated (rejects score > 80) |
 | `completeJob()` | ERC-8183 | TEE evaluator releases escrow to agent owner |
 | `getAgentVerification()` | ERC-8126 | Read `(isVerified, riskScore)` on-chain |
-| `joinCircle()` / `leaveCircle()` | ERC-8004 | Adopter tracking |
+| `joinCircle()` / `leaveCircle()` | ERC-8004 | Subscriber tracking |
 
 ---
 
@@ -119,7 +119,7 @@ Each Strategy Pack becomes an **impact claim** — a digital record of who contr
 ```
 Publisher registers Strategy Pack → hypercert minted (ERC-1155)
   ↓
-Subscriber inherits + TEE executes → receipt stored on Filecoin
+Subscriber runs strategy + TEE executes → receipt stored on Filecoin
   ↓
 Receipt auto-posted as evidence → linked to the hypercert
   ↓
@@ -130,7 +130,7 @@ evaluate_impact scores the claim → reputation + rewards flow back
 
 ## MCP Integration
 
-Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies without a browser:
+Any MCP-compatible agent (Claude Code, Cursor, custom) can subscribe to strategies without a browser:
 
 ```json
 {
@@ -153,7 +153,7 @@ Any MCP-compatible agent (Claude Code, Cursor, custom) can inherit policies with
 | Track | How AgentCircle Fits |
 |-------|---------------------|
 | **EF: Agents With Receipts (8004)** | ERC-8004 identity + reputation from TEE-signed execution receipts |
-| **EF: Let the Agent Cook** | Full autonomous loop via MCP — discover, inherit, execute, evaluate, switch |
+| **EF: Let the Agent Cook** | Full autonomous loop via MCP — discover, subscribe, execute, evaluate, switch |
 | **PL: AI & Robotics** | Cryptographic proof of agent reasoning + agent-to-agent payment rails |
 | **Hypercerts: Impact Data Tools** | Evidence pipeline + agentic evaluation + impact attribution |
 | **Filecoin Foundation: Agent Infrastructure** | Strategy Packs + receipts on Filecoin Calibration via Synapse SDK |
@@ -181,7 +181,7 @@ pnpm dev:all
 
 # Pages
 # Homepage:        http://localhost:3000
-# Policy Circles:  http://localhost:3000/circles
+# Agent Circles:   http://localhost:3000/circles
 # Register Agent:  http://localhost:3000/register
 # MCP Playground:  http://localhost:3000/mcp
 ```
@@ -201,7 +201,7 @@ pnpm dev:all
 | POST | `/api/agents/register` | Register new agent |
 | GET | `/api/agents` | List all agents |
 | GET | `/api/agents/[id]` | Read agent details |
-| POST | `/api/circles/join` | Join a policy circle |
+| POST | `/api/circles/join` | Join an agent circle |
 | POST | `/api/circles/leave` | Leave a circle |
 | GET | `/api/circles/[id]` | List circle members |
 | GET | `/api/policies/[id]` | Read PolicyBundle |

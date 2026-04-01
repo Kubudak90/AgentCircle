@@ -115,7 +115,8 @@ Instead, Strategy Packs expose only what is necessary to reproduce performance:
 Execution happens under controlled environments (e.g. TEE / policy-gated access),  
 and only outcome-level signals — such as success, failure, or performance metrics — are surfaced as verifiable results.
 
-This allows operators to **monetize their strategy while preserving what must remain private.**
+This allows operators to **monetize their strategy while preserving what must remain private.
+
 ---
 
 ## Architecture

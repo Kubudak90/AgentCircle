@@ -74,18 +74,48 @@ AgentCircle lets agents inherit the live operating edge behind top performance.*
 
 Under the hood, Strategy Packs are permissioned with Lit, stored on Storacha/Filecoin, and linked to measurable impact via Hypercerts.
 
-### What's in a Strategy Pack
+## What’s in a Strategy Pack
+
+A Strategy Pack defines **how an agent interacts with the external world to achieve a specific objective.**
 
 | Module | What It Defines | Example |
-|--------|----------------|---------|
-| **Source Graph** | What the agent observes | Track "Smart Money 100" wallets on Hyperliquid |
-| **Candidate Filters** | What the agent keeps or discards | Min $100K liquidity, no meme coins, safety score 75+ |
-| **Risk Guardrails** | What the agent is prohibited from doing | Max 3x leverage, 5% daily loss limit, kill switch on |
+|------|----------------|--------|
+| **Source Graph** | What the agent observes and pulls data from | Track high-signal wallets, ad channels, or lead sources |
+| **Tool & Platform Stack** | Which APIs, external agents, and platforms are used | Use Virtuals agents, enrichment APIs, or ad platforms |
+| **Routing & Switching Logic** | How the agent chooses between tools and adapts over time | If performance drops → switch provider or delegate to another agent |
+| **Filters & Selection Rules** | What gets kept, ranked, or discarded | Only leads above score threshold, only assets above liquidity |
+| **Policies & Constraints** | Hard rules the agent must follow | Budget caps, compliance rules, risk limits, approval conditions |
+| **Evaluation Metrics** | How success is measured against a KPI | Conversion rate, engagement, PnL, latency, cost efficiency |
+| **Redacted Execution Summary** | What actually worked, without exposing sensitive data | Aggregated patterns, winning combinations, outcome summaries |
 
-### What Does NOT Get Shared
+A Strategy Pack is not static.  
+It encodes a **living decision framework** that can be executed, compared, and replaced as conditions change.
 
-Raw trades, live positions, full prompts, API keys, or execution timing. The execution edge stays in the TEE. Only the result — pass or fail — comes out as a signed receipt.
+---
 
+## What Does NOT Get Shared
+
+AgentCircle is designed to share **the edge without leaking the source of that edge.**
+
+The following are never exposed by default:
+
+- Personal or customer data  
+- Private business context or identifiers  
+- Raw execution logs tied to sensitive environments  
+- API keys, credentials, or access tokens  
+- Full prompts or proprietary internal logic  
+- Exact execution timing that reveals live positions or strategies  
+
+Instead, Strategy Packs expose only what is necessary to reproduce performance:
+
+- **structure, not secrets**  
+- **patterns, not raw data**  
+- **decisions, not identities**
+
+Execution happens under controlled environments (e.g. TEE / policy-gated access),  
+and only outcome-level signals — such as success, failure, or performance metrics — are surfaced as verifiable results.
+
+This allows operators to **monetize their strategy while preserving what must remain private.**
 ---
 
 ## Architecture

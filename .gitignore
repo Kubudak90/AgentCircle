@@ -35,3 +35,4 @@ src/types/
 !src/types/schema.ts
 CLAUDE.md
 pitch.md
+.vercel

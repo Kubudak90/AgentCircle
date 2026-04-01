@@ -446,14 +446,14 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
             <DialogTitle className="font-mono text-sm tracking-tight">{kol.nft.name}</DialogTitle>
           </div>
           <DialogDescription className="font-mono text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em]">
-            {phase === "form" ? "Configure overrides and deploy via TEE" : "TEE Execution Terminal"}
+            {phase === "form" ? "Configure overrides and subscribe via TEE" : "TEE Execution Terminal"}
           </DialogDescription>
         </DialogHeader>
 
         {phase === "form" ? (
           <div className="space-y-6 px-6 py-5">
             <div className="space-y-3">
-              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-cobalt">Inherited Policy</p>
+              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-cobalt">Strategy Policy</p>
               <div className="flex flex-wrap gap-1.5">
                 {kol.policy.sourceGraph.monitoredVenues.map((v) => (
                   <Badge key={v} variant="secondary" className="font-mono text-[10px] bg-cobalt/10 text-cobalt border-cobalt/20">{v}</Badge>
@@ -498,7 +498,7 @@ export default function InheritDialog({ kol, open, onOpenChange }: Props) {
               onClick={execute}
               className="w-full py-3 rounded-lg bg-gradient-to-r from-[#10f5a0] to-[#00e68a] text-[#0a0a0a] text-xs font-mono font-bold tracking-wide hover:shadow-[0_0_25px_-5px_rgba(16,245,160,0.5)] active:scale-[0.98] transition-all"
             >
-              Deploy &amp; Execute via TEE
+              Subscribe &amp; Execute via TEE
             </button>
           </div>
         ) : (

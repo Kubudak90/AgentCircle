@@ -58,7 +58,7 @@ export default function Home() {
             <span className="text-xl font-bold text-[#00FF9C] tracking-tight neon-text-glow">AgentCircle</span>
             <div className="hidden md:flex gap-6 text-xs font-medium uppercase tracking-widest">
               <span className="text-[#00FF9C] border-b border-[#00FF9C] pb-0.5">Discover</span>
-              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Policy Circles</Link>
+              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Agent Circles</Link>
               <Link href="/mcp" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">MCP</Link>
               <a href="#live-proofs" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Live Proofs</a>
             </div>
@@ -81,22 +81,29 @@ export default function Home() {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00FF9C]/10 border border-[#00FF9C]/40 mb-6">
               <span className="w-2 h-2 rounded-full bg-[#00FF9C] status-pulse" />
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#00FF9C]">Private Policy Inheritance Protocol</span>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#00FF9C]">Verified Strategy Marketplace</span>
             </div>
             <h1 className="text-5xl lg:text-7xl font-bold tracking-tight max-w-3xl mb-6 leading-[0.95]">
-              Inherit Strategies from{" "}
-              <span className="text-[#00FF9C] italic neon-text-glow">Trusted Agents.</span>
+              Run Verified Strategies from{" "}
+              <span className="text-[#00FF9C] italic neon-text-glow">Top Operators.</span>
             </h1>
-            <p className="text-lg text-[#c0c9be] max-w-2xl font-light leading-relaxed mb-3">
-              Your AI agent inherits operational policies — source graphs, candidate filters, and risk guardrails — from verified operators. TEE-enforced. ECDSA-signed. On-chain receipts on{" "}
-              <span className="text-[#00FF9C] font-semibold">Filecoin + Base</span>.
+            <p className="text-xl text-[#d9e7c8] max-w-2xl font-medium leading-relaxed mb-3">
+              You&apos;re not copying trades. You&apos;re subscribing to the decision framework that produces them.
             </p>
-            <p className="text-sm font-mono text-[#00FF9C]/60 mb-10">
-              You&apos;re not copying trades. You&apos;re inheriting the decision framework that produces them.
+            <p className="text-base text-[#c0c9be]/70 max-w-2xl font-light leading-relaxed mb-8">
+              Your AI agent runs battle-tested strategies from top operators — without exposing the alpha. Every execution is verified in a TEE and proven on-chain.
             </p>
+            {/* Trust Strip */}
+            <div className="flex flex-wrap gap-2 mb-10">
+              {["ERC-8004 Identity", "ERC-8183 Escrow", "Hypercerts Impact", "Lit Protocol TEE", "Filecoin Storage", "Base L2"].map((label) => (
+                <span key={label} className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full bg-[#00FF9C]/5 border border-[#00FF9C]/15 text-[#00FF9C]/70">
+                  {label}
+                </span>
+              ))}
+            </div>
             <div className="flex flex-wrap gap-4">
               <Link href="/circles" className="bioluminescent-btn px-8 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wider active:scale-95 transition-all inline-block">
-                Browse Policy Circles
+                Browse Agent Circles
               </Link>
               <Link href="/register" className="px-8 py-3.5 rounded-xl bg-[#00FF9C]/5 border border-[#00FF9C]/30 text-[#d9e7c8] font-bold text-sm hover:bg-[#00FF9C]/10 transition-all inline-block">
                 Register Your Agent
@@ -107,14 +114,31 @@ export default function Home() {
 
         {/* Bento Grid */}
         <section className="mb-20">
-          <div className="flex justify-between items-end mb-8">
+          <div className="flex justify-between items-end mb-4">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-1">Discover Policy Circles</h2>
-              <p className="text-sm text-[#c0c9be]/60">Top performing TEE-verified agent groups</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-1">Discover Agent Circles</h2>
+              <p className="text-sm text-[#c0c9be]/60">Top verified operators with TEE-proven track records</p>
             </div>
             <Link href="/circles" className="text-[#00FF9C] text-xs font-bold uppercase tracking-widest hover:neon-text-glow transition-all flex items-center gap-1">
               View All &rarr;
             </Link>
+          </div>
+          {/* Stats Bar */}
+          <div className="flex flex-wrap gap-6 mb-8 px-5 py-3 rounded-xl bg-[#00FF9C]/5 border border-[#00FF9C]/10">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold font-mono text-[#00FF9C]">{agents.length}</span>
+              <span className="text-[10px] uppercase tracking-widest text-[#c0c9be]/40 font-bold">Verified Operators</span>
+            </div>
+            <div className="w-px h-5 bg-[#00FF9C]/15 self-center" />
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold font-mono text-[#00FF9C]">{agents.reduce((sum, a) => sum + a.identity.activeAdopters, 0)}</span>
+              <span className="text-[10px] uppercase tracking-widest text-[#c0c9be]/40 font-bold">Subscribers</span>
+            </div>
+            <div className="w-px h-5 bg-[#00FF9C]/15 self-center" />
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold font-mono text-[#00FF9C]">{agents.reduce((sum, a) => sum + (a.recentReceipts?.length || 0), 0)}</span>
+              <span className="text-[10px] uppercase tracking-widest text-[#c0c9be]/40 font-bold">On-Chain Receipts</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
@@ -133,7 +157,7 @@ export default function Home() {
               <p className="text-sm text-[#c0c9be]/50 leading-relaxed my-6">{featured.nft.description}</p>
               <div className="grid grid-cols-3 gap-4 p-4 rounded-xl bg-[#0c1605]/60 border border-[#00FF9C]/10 mb-6">
                 <div className="text-center">
-                  <p className="text-[10px] text-[#c0c9be]/40 uppercase font-bold mb-1">Adopters</p>
+                  <p className="text-[10px] text-[#c0c9be]/40 uppercase font-bold mb-1">Subscribers</p>
                   <p className="text-lg font-bold font-mono">{featured.identity.activeAdopters}</p>
                 </div>
                 <div className="text-center border-x border-[#00FF9C]/10">
@@ -149,7 +173,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="bioluminescent-btn w-full py-3.5 rounded-xl font-bold text-sm text-center uppercase tracking-wider">
-                View Agent
+                View Strategy
               </div>
             </Link>
 
@@ -172,7 +196,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="w-full py-3.5 bg-[#00FF9C]/5 rounded-xl border border-[#00FF9C]/30 text-[#00FF9C] font-bold text-sm text-center uppercase tracking-wider hover:bg-[#00FF9C]/10 transition-colors">
-                View Circle
+                View Strategy
               </div>
             </Link>
 
@@ -187,7 +211,7 @@ export default function Home() {
                   <p className="text-xs text-[#c0c9be]/40">{kol.nft.description}</p>
                 </div>
                 <div className="mt-auto pt-4 border-t border-[#00FF9C]/10 flex justify-between items-center text-[10px] font-mono">
-                  <span className="text-[#c0c9be]/30">{kol.identity.activeAdopters} adopters</span>
+                  <span className="text-[#c0c9be]/30">{kol.identity.activeAdopters} subscribers</span>
                   <span className="text-[#00FF9C] font-bold">{kol.recentReceipts.length} receipts</span>
                 </div>
               </Link>
@@ -201,7 +225,7 @@ export default function Home() {
             <h2 className="text-3xl font-bold tracking-tight">How AgentCircle Works</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {[
-                { n: "01", t: "Inherit Policy", d: "Choose an agent's PolicyBundle. Your agent adopts Source Graph, Filters, and Risk Guardrails — not individual trades." },
+                { n: "01", t: "Subscribe to Strategy", d: "Choose an operator's Strategy Pack. Your agent adopts Source Graph, Filters, and Risk Guardrails — not individual trades." },
                 { n: "02", t: "TEE Verifies", d: "Lit Protocol TEE enforces guardrails inside an enclave. Signs every result with ECDSA. Proof is unfakeable." },
                 { n: "03", t: "On-Chain Receipt", d: "Receipt submitted to Base via ecrecover. Reputation updates. Full log stored on Filecoin. Anyone can audit." },
               ].map((s) => (
@@ -218,7 +242,7 @@ export default function Home() {
                 <div className="flex-1">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-[#00FF9C] font-bold mb-2">Agent-Native</p>
                   <h3 className="font-bold mb-2">MCP Integration</h3>
-                  <p className="text-xs text-[#c0c9be]/40 leading-relaxed mb-4">Connect from Claude Code, Cursor, or any MCP client. Your agent inherits policies programmatically — no browser needed.</p>
+                  <p className="text-xs text-[#c0c9be]/40 leading-relaxed mb-4">Connect from Claude Code, Cursor, or any MCP client. Your agent subscribes to strategies programmatically — no browser needed.</p>
                   <Link href="/mcp" className="inline-flex items-center gap-2 px-4 py-2 bg-[#00FF9C]/10 border border-[#00FF9C]/20 text-[#00FF9C] text-xs font-bold uppercase tracking-wider hover:bg-[#00FF9C]/20 transition-all">
                     Try MCP Playground &rarr;
                   </Link>
@@ -263,7 +287,7 @@ export default function Home() {
               </div>
               <div className="p-4 bg-[#00FF9C]/5 border-t border-[#00FF9C]/10 text-center">
                 <Link href="/circles" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00FF9C] hover:neon-text-glow transition-all">
-                  View All Circles &rarr;
+                  View All Strategies &rarr;
                 </Link>
               </div>
             </div>
@@ -281,6 +305,7 @@ export default function Home() {
           <div className="flex gap-8 text-[10px] font-bold uppercase tracking-widest text-[#c0c9be]/25">
             <Link href="/circles" className="hover:text-[#00FF9C] transition-colors">Circles</Link>
             <a href="https://github.com/PL-Genesis-AgentCircle/AgentCircle" target="_blank" rel="noopener noreferrer" className="hover:text-[#00FF9C] transition-colors">Github</a>
+            <a href="https://sepolia.basescan.org/address/0x899bd273ad6c1e1191df43a3e8756e773517a20b" target="_blank" rel="noopener noreferrer" className="hover:text-[#00FF9C] transition-colors">Contract</a>
             <Link href="/register" className="hover:text-[#00FF9C] transition-colors">Register</Link>
           </div>
         </div>

@@ -115,7 +115,7 @@ export default function AgentDetailPage({ params }: { params: Promise<{ agentId:
             <Link href="/" className="text-xl font-bold text-[#97d5a3] tracking-tight uppercase">AgentCircle</Link>
             <div className="hidden md:flex gap-6 text-xs font-medium uppercase tracking-widest">
               <Link href="/" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">Discover</Link>
-              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">Policy Circles</Link>
+              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">Agent Circles</Link>
               <Link href="/mcp" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">MCP</Link>
               <Link href="/#live-proofs" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-all">Live Proofs</Link>
             </div>
@@ -173,7 +173,7 @@ export default function AgentDetailPage({ params }: { params: Promise<{ agentId:
                   onClick={() => setShowInherit(true)}
                   className="bg-[#2d3822] text-[#d9e7c8] font-bold text-xs uppercase tracking-widest px-6 py-3 border border-[#414941]/30 hover:bg-[#97d5a3] hover:text-[#003919] transition-all active:scale-95"
                 >
-                  Inherit Policy
+                  Subscribe
                 </button>
                 {isMember && (
                   <button
@@ -217,7 +217,7 @@ export default function AgentDetailPage({ params }: { params: Promise<{ agentId:
               ))}
             </div>
           ) : (
-            <p className="text-sm text-[#8a9389]">No members yet. Be the first to inherit this policy.</p>
+            <p className="text-sm text-[#8a9389]">No members yet. Be the first to subscribe.</p>
           )}
         </section>
 

@@ -9,8 +9,8 @@ type TermLine = { text: string; color: "green" | "cyan" | "white" | "yellow" | "
 const HELP_TEXT = [
   "Available commands:",
   "",
-  "  list_circles              List all available policy circles",
-  "  inherit <kolId> <wallet>  Inherit a policy via TEE execution",
+  "  list_circles              List all available agent circles",
+  "  inherit <kolId> <wallet>  Subscribe to a strategy via TEE execution",
   "  evaluate <agentId>        Evaluate agent impact (hypercert + evidence)",
   "  help                      Show this message",
   "  clear                     Clear terminal",
@@ -77,7 +77,7 @@ export default function MCPPlaygroundPage() {
               { text: `  Risk: ${c.riskSummary.maxLeverage} leverage | ${c.riskSummary.dailyLossLimit} loss limit | Kill Switch: ${c.riskSummary.killSwitch}`, color: "yellow" },
             ]);
           }
-          addLines([{ text: "", color: "white" }, { text: 'Use "inherit <kolId> <wallet>" to adopt a policy.', color: "white" }]);
+          addLines([{ text: "", color: "white" }, { text: 'Use "inherit <kolId> <wallet>" to subscribe to a strategy.', color: "white" }]);
         }
       } catch (err: any) {
         addLines([{ text: `Error: ${err.message}`, color: "red" }]);
@@ -92,7 +92,7 @@ export default function MCPPlaygroundPage() {
     if (inheritMatch) {
       const [, kolId, wallet] = inheritMatch;
       setLoading(true);
-      addLines([{ text: `Inheriting policy from agent ${kolId}...`, color: "yellow" }]);
+      addLines([{ text: `Subscribing to strategy from agent ${kolId}...`, color: "yellow" }]);
 
       try {
         const res = await fetch("/api/mcp", {
@@ -214,7 +214,7 @@ export default function MCPPlaygroundPage() {
             <Link href="/" className="text-xl font-bold text-[#00FF9C] tracking-tight neon-text-glow">AgentCircle</Link>
             <div className="hidden md:flex gap-6 text-xs font-medium uppercase tracking-widest">
               <Link href="/" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Discover</Link>
-              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Policy Circles</Link>
+              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Agent Circles</Link>
               <span className="text-[#00FF9C] border-b border-[#00FF9C] pb-0.5">MCP</span>
               <Link href="/register" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Register</Link>
             </div>

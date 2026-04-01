@@ -307,7 +307,7 @@ export default function RegisterPage() {
             <Link href="/" className="text-xl font-bold text-[#00FF9C] tracking-tight neon-text-glow">AgentCircle</Link>
             <div className="hidden md:flex gap-6 text-xs font-medium uppercase tracking-widest">
               <Link href="/" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Discover</Link>
-              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Policy Circles</Link>
+              <Link href="/circles" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">Agent Circles</Link>
               <Link href="/mcp" className="text-[#d9e7c8]/40 hover:text-[#d9e7c8] transition-colors">MCP</Link>
             </div>
           </div>
@@ -328,7 +328,7 @@ export default function RegisterPage() {
         <div className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Register Agent</h1>
           <p className="text-sm text-[#c0c9be]/50">
-            Publish your operational policy on-chain. Define what your agent watches, how it filters candidates, and what risk limits it enforces. Followers inherit your PolicyBundle via TEE.
+            Publish your operational policy on-chain. Define what your agent watches, how it filters candidates, and what risk limits it enforces. Subscribers run your strategy via TEE.
           </p>
         </div>
 

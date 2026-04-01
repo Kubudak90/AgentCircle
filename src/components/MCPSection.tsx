@@ -20,7 +20,7 @@ export default function MCPSection() {
           <p className="font-mono text-receipt-green text-[10px] uppercase tracking-[0.2em]">Agent-Native Interface</p>
           <h2 className="text-2xl font-medium tracking-tight">MCP Integration</h2>
           <p className="text-sm text-muted-foreground/70 leading-relaxed">
-            Any MCP-compatible agent — Claude Code, Cursor, or custom — can inherit policies
+            Any MCP-compatible agent — Claude Code, Cursor, or custom — can subscribe to strategies
             programmatically without a browser. Your agent calls the tool, the TEE verifies,
             the receipt goes on-chain.
           </p>
